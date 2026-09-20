@@ -1,0 +1,166 @@
+{
+  "case_id": "HHG-002",
+  "case": {
+    "status": "closed_legitimate",
+    "verdict": "legitimate",
+    "fraud_probability": null,
+    "pattern": "card_not_present_fraud",
+    "pattern_description": "",
+    "affected_txn_ids": [],
+    "first_suspicious_txn_id": "",
+    "connected_card_ids": [],
+    "connected_device_profiles": [],
+    "exposure_usd": 0,
+    "evidence": [
+      {
+        "claim": "S08 Amount anomaly: online z-score > 2 vs the card's own log-amount history (>=20 prior)",
+        "source": "graph",
+        "ref": "tool:detect_fraud_patterns",
+        "entity_ids": []
+      },
+      {
+        "claim": "S05 Repeat victim: visible prior confirmed case on the card or customer",
+        "source": "graph",
+        "ref": "tool:detect_fraud_patterns",
+        "entity_ids": [
+          "CC-4160"
+        ]
+      },
+      {
+        "claim": "S13 Online billing region (addr1) missing",
+        "source": "graph",
+        "ref": "tool:detect_fraud_patterns",
+        "entity_ids": []
+      },
+      {
+        "claim": "S14 Online with no identity record",
+        "source": "graph",
+        "ref": "tool:detect_fraud_patterns",
+        "entity_ids": []
+      },
+      {
+        "claim": "card C11923-K2 shares an eligible device with this card (context)",
+        "source": "graph",
+        "ref": "tool:find_connected_entities",
+        "entity_ids": [
+          "C11923-K2"
+        ]
+      },
+      {
+        "claim": "card C02206-K1 shares an eligible device with this card (context)",
+        "source": "graph",
+        "ref": "tool:find_connected_entities",
+        "entity_ids": [
+          "C02206-K1"
+        ]
+      },
+      {
+        "claim": "bank model alert band: high (input, not a verdict)",
+        "source": "graph",
+        "ref": "tool:get_transaction_context",
+        "entity_ids": []
+      },
+      {
+        "claim": "10 similar closed case(s) retrieved by GraphRAG (4 linked to this card/customer/device, 6 textual precedents; 4 were confirmed fraud): memory and wording context, not proof",
+        "source": "graph",
+        "ref": "tool:find_similar_cases",
+        "entity_ids": [
+          "CC-4303",
+          "CC-4160",
+          "CC-3796",
+          "CC-0463",
+          "CC-0893",
+          "CC-0098",
+          "CC-0483",
+          "CC-2238",
+          "CC-4589",
+          "CC-0009"
+        ]
+      },
+      {
+        "claim": "[SIMULATED] step-up authentication: passed",
+        "source": "customer",
+        "ref": "evidence_request:1",
+        "entity_ids": []
+      },
+      {
+        "claim": "policy text consulted (policy:3a): A case is not a report. Two different things, and the agent produces both.\n\nA case (CREATE_CASE) is the bank's internal record of an investigation. Open one whe",
+        "source": "document",
+        "ref": "document:policy:3a",
+        "entity_ids": []
+      },
+      {
+        "claim": "policy text consulted (policy:R1): When: The case rests on a single signal (including a risk score alone) and the assessed fraud probability is below 0.70. Actions: VERIFY_WITH_CUSTOMER or STEP_U",
+        "source": "document",
+        "ref": "document:policy:R1",
+        "entity_ids": []
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-4303",
+      "CC-4160",
+      "CC-3796",
+      "CC-0463",
+      "CC-0893",
+      "CC-0098",
+      "CC-0483",
+      "CC-2238",
+      "CC-4589",
+      "CC-0009"
+    ],
+    "summary": "Evidence strength: moderate (one validated independent source; 2 independent source(s)); validated evidence: S08 Amount anomaly: online z-score > 2 vs the card's own log-amount history (>=20 prior); weak context only: S05 Repeat victim: visible prior confirmed case on the card or customer; S13 Online billing region (addr1) missing; S14 Online with no identity record; simulated response (not real evidence): [SIMULATED] step-up authentication: passed. Investigation uncertainty: high; not available or unresolved: customer response not available yet, no merchant field: policy R7 (recurring merchant) cannot be evaluated; evidence requested (step_up_auth), outcome: passed. Calibrated probability: not available, because the calibration procedure did not pass its validation gates on the available history (out-of-time validation failed for this evidence class; closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)), so no probability is stated. Recommended (not executed): ALLOW_TRANSACTION (auto, R1), MONITOR_CARD (auto, R1).",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-HHG-002"
+  },
+  "evidence_requests": [
+    {
+      "type": "step_up_auth",
+      "asked_after_step": 9,
+      "assumed_response": "[SIMULATED] Step-up authentication passed."
+    }
+  ],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "STEP_UP_AUTH",
+        "route": "auto",
+        "reason": "R1: single independent source (not strong): verify before any block"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "evidence requested / moderate evidence: open a case (policy 3a)"
+      },
+      {
+        "action": "MONITOR_CARD",
+        "route": "auto",
+        "reason": "R1: watch the card while evidence is pending"
+      }
+    ],
+    "final": [
+      {
+        "action": "ALLOW_TRANSACTION",
+        "route": "auto",
+        "reason": "R1: simulated step-up authentication passed and no validated evidence contradicts it"
+      },
+      {
+        "action": "MONITOR_CARD",
+        "route": "auto",
+        "reason": "R1: watch the card after a passed step-up"
+      }
+    ],
+    "what_changed": "the passed response changed the recommendation"
+  },
+  "sar": {
+    "file": false,
+    "reason": "No report: policy section 3a requires fraud confirmed or strongly suspected AND (exposure above $1,000, a shared device/region cluster or another customer's fraud, or a coordinated/undocumented pattern); this case does not meet it (final actions: ALLOW_TRANSACTION, MONITOR_CARD).",
+    "narrative": "",
+    "subjects": [],
+    "total_amount_usd": 0,
+    "activity_dates": []
+  },
+  "stop_reason": "simulated step-up passed; no shared-origin evidence contradicts it",
+  "tool_calls": 10,
+  "tokens": 0,
+  "latency_s": 25.4
+}

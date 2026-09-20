@@ -1,0 +1,418 @@
+{
+  "case_id": "HHG-014",
+  "case": {
+    "status": "escalated",
+    "verdict": "fraud",
+    "fraud_probability": null,
+    "pattern": "undocumented",
+    "pattern_description": "Device shared by several customers whose transactions are almost all on a new device profile behind an anonymising proxy; found by device-graph traversal (S01).",
+    "affected_txn_ids": [
+      "3457285",
+      "3457521",
+      "3460634",
+      "3461032",
+      "3462447",
+      "3463379",
+      "3466014",
+      "3467346",
+      "3467635",
+      "3467764",
+      "3467828",
+      "3468314",
+      "3468363",
+      "3468463",
+      "3469068",
+      "3470763",
+      "3471032",
+      "3473050",
+      "3473057",
+      "3474445",
+      "3475406",
+      "3476202",
+      "3477916",
+      "3478133",
+      "3478561",
+      "3478714"
+    ],
+    "first_suspicious_txn_id": "3457285",
+    "connected_card_ids": [
+      "C01289-K1",
+      "C01996-K2",
+      "C02910-K1",
+      "C02975-K1",
+      "C03676-K2",
+      "C04108-K2",
+      "C04274-K1",
+      "C05448-K2",
+      "C06710-K1",
+      "C08168-K1",
+      "C09049-K1",
+      "C09906-K1",
+      "C09975-K1",
+      "C10193-K2",
+      "C10326-K1",
+      "C11082-K1",
+      "C11670-K2",
+      "C12796-K1",
+      "C13291-K1"
+    ],
+    "connected_device_profiles": [
+      "SM-G935F Build/NRD90M | Android 7.0 | chrome 62.0 for android | 1920x1080"
+    ],
+    "exposure_usd": 3778.14,
+    "evidence": [
+      {
+        "claim": "S01 Shared-origin device ring (compound anomaly)",
+        "source": "graph",
+        "ref": "tool:detect_fraud_patterns",
+        "entity_ids": [
+          "D_2c2006f554"
+        ]
+      },
+      {
+        "claim": "S10 Online id_15 = New",
+        "source": "graph",
+        "ref": "tool:detect_fraud_patterns",
+        "entity_ids": []
+      },
+      {
+        "claim": "S11 Online anonymous/hidden proxy",
+        "source": "graph",
+        "ref": "tool:detect_fraud_patterns",
+        "entity_ids": []
+      },
+      {
+        "claim": "S12 Online id_15 = New and a proxy",
+        "source": "graph",
+        "ref": "tool:detect_fraud_patterns",
+        "entity_ids": []
+      },
+      {
+        "claim": "24 transaction(s) on 19 other card(s) used the evidence device(s) in the 30-day episode window",
+        "source": "graph",
+        "ref": "tool:get_card_history",
+        "entity_ids": [
+          "3457285",
+          "3457521",
+          "3461032",
+          "3462447",
+          "3463379",
+          "3466014",
+          "3467346",
+          "3467635",
+          "3467764",
+          "3467828",
+          "3468314",
+          "3468363",
+          "3468463",
+          "3469068",
+          "3470763",
+          "3471032",
+          "3473050",
+          "3473057",
+          "3474445",
+          "3475406",
+          "3476202",
+          "3477916",
+          "3478133",
+          "3478714",
+          "C01289-K1",
+          "C01996-K2",
+          "C02910-K1",
+          "C02975-K1",
+          "C03676-K2",
+          "C04108-K2",
+          "C04274-K1",
+          "C05448-K2",
+          "C06710-K1",
+          "C08168-K1",
+          "C09049-K1",
+          "C09906-K1",
+          "C09975-K1",
+          "C10193-K2",
+          "C10326-K1",
+          "C11082-K1",
+          "C11670-K2",
+          "C12796-K1",
+          "C13291-K1"
+        ]
+      },
+      {
+        "claim": "card C01289-K1 shares an eligible device with this card (context)",
+        "source": "graph",
+        "ref": "tool:find_connected_entities",
+        "entity_ids": [
+          "C01289-K1"
+        ]
+      },
+      {
+        "claim": "card C01996-K2 shares an eligible device with this card (context)",
+        "source": "graph",
+        "ref": "tool:find_connected_entities",
+        "entity_ids": [
+          "C01996-K2"
+        ]
+      },
+      {
+        "claim": "card C02910-K1 shares an eligible device with this card (context)",
+        "source": "graph",
+        "ref": "tool:find_connected_entities",
+        "entity_ids": [
+          "C02910-K1"
+        ]
+      },
+      {
+        "claim": "card C02975-K1 shares an eligible device with this card (context)",
+        "source": "graph",
+        "ref": "tool:find_connected_entities",
+        "entity_ids": [
+          "C02975-K1"
+        ]
+      },
+      {
+        "claim": "card C03676-K2 shares an eligible device with this card (context)",
+        "source": "graph",
+        "ref": "tool:find_connected_entities",
+        "entity_ids": [
+          "C03676-K2"
+        ]
+      },
+      {
+        "claim": "card C04108-K2 shares an eligible device with this card (context)",
+        "source": "graph",
+        "ref": "tool:find_connected_entities",
+        "entity_ids": [
+          "C04108-K2"
+        ]
+      },
+      {
+        "claim": "card C04274-K1 shares an eligible device with this card (context)",
+        "source": "graph",
+        "ref": "tool:find_connected_entities",
+        "entity_ids": [
+          "C04274-K1"
+        ]
+      },
+      {
+        "claim": "card C05448-K2 shares an eligible device with this card (context)",
+        "source": "graph",
+        "ref": "tool:find_connected_entities",
+        "entity_ids": [
+          "C05448-K2"
+        ]
+      },
+      {
+        "claim": "card C06710-K1 shares an eligible device with this card (context)",
+        "source": "graph",
+        "ref": "tool:find_connected_entities",
+        "entity_ids": [
+          "C06710-K1"
+        ]
+      },
+      {
+        "claim": "card C08168-K1 shares an eligible device with this card (context)",
+        "source": "graph",
+        "ref": "tool:find_connected_entities",
+        "entity_ids": [
+          "C08168-K1"
+        ]
+      },
+      {
+        "claim": "card C09049-K1 shares an eligible device with this card (context)",
+        "source": "graph",
+        "ref": "tool:find_connected_entities",
+        "entity_ids": [
+          "C09049-K1"
+        ]
+      },
+      {
+        "claim": "card C09906-K1 shares an eligible device with this card (context)",
+        "source": "graph",
+        "ref": "tool:find_connected_entities",
+        "entity_ids": [
+          "C09906-K1"
+        ]
+      },
+      {
+        "claim": "card C09975-K1 shares an eligible device with this card (context)",
+        "source": "graph",
+        "ref": "tool:find_connected_entities",
+        "entity_ids": [
+          "C09975-K1"
+        ]
+      },
+      {
+        "claim": "card C10193-K2 shares an eligible device with this card (context)",
+        "source": "graph",
+        "ref": "tool:find_connected_entities",
+        "entity_ids": [
+          "C10193-K2"
+        ]
+      },
+      {
+        "claim": "card C10326-K1 shares an eligible device with this card (context)",
+        "source": "graph",
+        "ref": "tool:find_connected_entities",
+        "entity_ids": [
+          "C10326-K1"
+        ]
+      },
+      {
+        "claim": "card C11082-K1 shares an eligible device with this card (context)",
+        "source": "graph",
+        "ref": "tool:find_connected_entities",
+        "entity_ids": [
+          "C11082-K1"
+        ]
+      },
+      {
+        "claim": "card C11670-K2 shares an eligible device with this card (context)",
+        "source": "graph",
+        "ref": "tool:find_connected_entities",
+        "entity_ids": [
+          "C11670-K2"
+        ]
+      },
+      {
+        "claim": "card C12796-K1 shares an eligible device with this card (context)",
+        "source": "graph",
+        "ref": "tool:find_connected_entities",
+        "entity_ids": [
+          "C12796-K1"
+        ]
+      },
+      {
+        "claim": "card C13291-K1 shares an eligible device with this card (context)",
+        "source": "graph",
+        "ref": "tool:find_connected_entities",
+        "entity_ids": [
+          "C13291-K1"
+        ]
+      },
+      {
+        "claim": "bank model alert band: low (input, not a verdict)",
+        "source": "graph",
+        "ref": "tool:get_transaction_context",
+        "entity_ids": []
+      },
+      {
+        "claim": "10 similar closed case(s) retrieved by GraphRAG (0 linked to this card/customer/device, 10 textual precedents; 4 were confirmed fraud): memory and wording context, not proof",
+        "source": "graph",
+        "ref": "tool:find_similar_cases",
+        "entity_ids": [
+          "CC-2649",
+          "CC-2971",
+          "CC-2985",
+          "CC-3035",
+          "CC-0098",
+          "CC-0483",
+          "CC-2238",
+          "CC-4589",
+          "CC-0009",
+          "CC-0010"
+        ]
+      },
+      {
+        "claim": "[SIMULATED] step-up authentication: passed",
+        "source": "customer",
+        "ref": "evidence_request:1",
+        "entity_ids": []
+      },
+      {
+        "claim": "policy text consulted (policy:R1): When: The case rests on a single signal (including a risk score alone) and the assessed fraud probability is below 0.70. Actions: VERIFY_WITH_CUSTOMER or STEP_U",
+        "source": "document",
+        "ref": "document:policy:R1",
+        "entity_ids": []
+      },
+      {
+        "claim": "policy text consulted (policy:R6): When: Several cards show fraud from the same device profile, billing region or recipient email in one window. Actions: name the shared element; CREATE_CASE; FIL",
+        "source": "document",
+        "ref": "document:policy:R6",
+        "entity_ids": []
+      },
+      {
+        "claim": "policy text consulted (policy:R8): When: Verdict is uncertain and exposure exceeds $500, or the evidence conflicts. Actions: ESCALATE_TO_ANALYST",
+        "source": "document",
+        "ref": "document:policy:R8",
+        "entity_ids": []
+      },
+      {
+        "claim": "policy text consulted (policy:R9): When: Activity fits none of the known patterns but the evidence shows coordinated or repeated abuse across customers. Actions: CREATE_CASE; FILE_REPORT; ESCALAT",
+        "source": "document",
+        "ref": "document:policy:R9",
+        "entity_ids": []
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-2649",
+      "CC-2971",
+      "CC-2985",
+      "CC-3035",
+      "CC-0098",
+      "CC-0483",
+      "CC-2238",
+      "CC-4589",
+      "CC-0009",
+      "CC-0010"
+    ],
+    "summary": "Evidence strength: strong (strong validated evidence; 2 independent source(s)); validated evidence: S01 Shared-origin device ring (compound anomaly); weak context only: S10 Online id_15 = New; S11 Online anonymous/hidden proxy; S12 Online id_15 = New and a proxy; simulated response (not real evidence): [SIMULATED] step-up authentication: passed. Investigation uncertainty: medium; not available or unresolved: customer response not available yet, no merchant field: policy R7 (recurring merchant) cannot be evaluated; evidence requested (step_up_auth), outcome: passed. Calibrated probability: not available, because the calibration procedure did not pass its validation gates on the available history (insufficient history for this evidence class; closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)), so no probability is stated. Recommended (not executed): ESCALATE_TO_ANALYST (auto, R8).",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-HHG-014"
+  },
+  "evidence_requests": [
+    {
+      "type": "step_up_auth",
+      "asked_after_step": 28,
+      "assumed_response": "[SIMULATED] Step-up authentication passed."
+    }
+  ],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R9: coordinated device-sharing pattern across customers, no documented pattern fits"
+      },
+      {
+        "action": "ESCALATE_TO_ANALYST",
+        "route": "auto",
+        "reason": "R9: undocumented coordinated pattern"
+      },
+      {
+        "action": "FILE_REPORT",
+        "route": "L2",
+        "reason": "R9/R6: coordinated activity across customers"
+      },
+      {
+        "action": "MONITOR_CONNECTED_CARDS",
+        "route": "auto",
+        "reason": "R6: cards share the eligible device"
+      },
+      {
+        "action": "VERIFY_WITH_CUSTOMER",
+        "route": "auto",
+        "reason": "confirm with the cardholder before any block (R1 spirit; block requires approval)"
+      }
+    ],
+    "final": [
+      {
+        "action": "ESCALATE_TO_ANALYST",
+        "route": "auto",
+        "reason": "R8: simulated step-up passed but strong shared-origin evidence remains"
+      }
+    ],
+    "what_changed": "the passed response changed the recommendation"
+  },
+  "sar": {
+    "file": false,
+    "reason": "No report: policy section 3a requires fraud confirmed or strongly suspected AND (exposure above $1,000, a shared device/region cluster or another customer's fraud, or a coordinated/undocumented pattern); this case does not meet it (final actions: ESCALATE_TO_ANALYST).",
+    "narrative": "",
+    "subjects": [],
+    "total_amount_usd": 0,
+    "activity_dates": []
+  },
+  "stop_reason": "simulated step-up passed but strong shared-origin evidence remains: escalate (R8)",
+  "tool_calls": 29,
+  "tokens": 0,
+  "latency_s": 41.02
+}
