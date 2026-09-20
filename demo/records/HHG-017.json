@@ -1,0 +1,407 @@
+{
+ "case_id": "HHG-017",
+ "case": {
+  "status": "open",
+  "verdict": "uncertain",
+  "fraud_probability": null,
+  "probability_calibrated": false,
+  "probability_source": "unavailable",
+  "calibration": {
+   "method": "b3-v1",
+   "gates_failed": [
+    "G3",
+    "G4"
+   ]
+  },
+  "pattern": "none",
+  "pattern_description": "",
+  "affected_txn_ids": [
+   "3450629"
+  ],
+  "first_suspicious_txn_id": "3450629",
+  "connected_card_ids": [],
+  "connected_device_profiles": [],
+  "exposure_usd": 100.09,
+  "evidence": [
+   {
+    "claim": "S11 Online anonymous/hidden proxy",
+    "source": "graph",
+    "ref": "detect_fraud_patterns",
+    "simulated": false,
+    "entity_ids": [],
+    "evidence_id": "E1",
+    "rating": "LOW"
+   },
+   {
+    "claim": "card C02716-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C02716-K2"
+    ],
+    "evidence_id": "E2",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "bank model alert band: medium (input, not a verdict)",
+    "source": "graph",
+    "ref": "get_transaction_context",
+    "simulated": false,
+    "entity_ids": [],
+    "evidence_id": "E3",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "2 visible cleared case(s) related to this card/customer (history, not proof)",
+    "source": "graph",
+    "ref": "find_prior_cases",
+    "simulated": false,
+    "entity_ids": [
+     "CC-1383",
+     "CC-0844"
+    ],
+    "evidence_id": "E4",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "10 similar closed case(s) retrieved by GraphRAG (3 linked to this card/customer/device, 7 textual precedents; 8 were confirmed fraud): memory and wording context, not proof",
+    "source": "graph",
+    "ref": "find_similar_cases",
+    "simulated": false,
+    "entity_ids": [
+     "CC-2142",
+     "CC-1383",
+     "CC-0844",
+     "CC-2649",
+     "CC-2971",
+     "CC-2985",
+     "CC-3035",
+     "CC-1245",
+     "CC-2223",
+     "CC-2308"
+    ],
+    "evidence_id": "E5",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "policy text consulted (policy:R1): When: The case rests on a single signal (including a risk score alone) and the assessed fraud probability is below 0.70. Actions: VERIFY_WITH_CUSTOMER or STEP_U",
+    "source": "document",
+    "ref": "document:policy:R1",
+    "simulated": false,
+    "entity_ids": [],
+    "evidence_id": "E6",
+    "rating": "CONTEXT"
+   }
+  ],
+  "similar_prior_cases": [
+   "CC-2142",
+   "CC-1383",
+   "CC-0844",
+   "CC-2649",
+   "CC-2971",
+   "CC-2985",
+   "CC-3035",
+   "CC-1245",
+   "CC-2223",
+   "CC-2308"
+  ],
+  "summary": "Evidence strength: weak (only weak context signals (not independent proof); 1 independent source(s)); weak context only: S11 Online anonymous/hidden proxy [E1]. Investigation uncertainty: medium; not available or unresolved: customer response not available yet, no merchant field: policy R7 (recurring merchant) cannot be evaluated; evidence requested (step_up_auth), outcome: no_response. Calibrated probability: not available, because the calibration procedure did not pass its validation gates on the available history (out-of-time validation failed for this evidence class; closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)), so no probability is stated. Recommended (not executed): STEP_UP_AUTH (auto, R1), MONITOR_CARD (auto, R1).",
+  "written_to_graph": true,
+  "graph_case_id": "CASE-HHG-017"
+ },
+ "evidence_requests": [
+  {
+   "type": "step_up_auth",
+   "asked_after_step": 9,
+   "assumed_response": "[SIMULATED] No response received; evidence remains pending.",
+   "simulated": true,
+   "request_id": "HHG-017:REQ1",
+   "outcome": "no_response"
+  }
+ ],
+ "next_best_actions": {
+  "initial": [
+   {
+    "action": "STEP_UP_AUTH",
+    "route": "auto",
+    "reason": "R1: only weak/context signals or the model score; verify before any block",
+    "rules": [
+     "R1"
+    ],
+    "executed": false,
+    "requires_approval": false
+   },
+   {
+    "action": "MONITOR_CARD",
+    "route": "auto",
+    "reason": "watch the card while evidence is pending",
+    "rules": [
+     "R1"
+    ],
+    "executed": false,
+    "requires_approval": false
+   }
+  ],
+  "final": [
+   {
+    "action": "STEP_UP_AUTH",
+    "route": "auto",
+    "reason": "R1: only weak/context signals or the model score; verify before any block",
+    "rules": [
+     "R1"
+    ],
+    "executed": false,
+    "requires_approval": false
+   },
+   {
+    "action": "MONITOR_CARD",
+    "route": "auto",
+    "reason": "watch the card while evidence is pending",
+    "rules": [
+     "R1"
+    ],
+    "executed": false,
+    "requires_approval": false
+   }
+  ],
+  "what_changed": "nothing"
+ },
+ "sar": {
+  "file": false,
+  "reason": "No report: policy section 3a requires fraud confirmed or strongly suspected AND (exposure above $1,000, a shared device/region cluster or another customer's fraud, or a coordinated/undocumented pattern); this case does not meet it (final actions: MONITOR_CARD, STEP_UP_AUTH).",
+  "narrative": "",
+  "subjects": [],
+  "total_amount_usd": 0,
+  "activity_dates": []
+ },
+ "graph_refs": {
+  "card_id": "C04570-K1",
+  "customer_id": "C04570",
+  "flagged_txn_id": "3450629",
+  "device_ids": [],
+  "connected_cards": {},
+  "similar_cases": [
+   {
+    "case_id": "CC-2142",
+    "match_reasons": [
+     "shared_device:D_a3686a1054"
+    ],
+    "method": "prior_cases_tool",
+    "score": 1.0
+   },
+   {
+    "case_id": "CC-1383",
+    "match_reasons": [
+     "same_card",
+     "same_customer"
+    ],
+    "method": "prior_cases_tool",
+    "score": 1.0
+   },
+   {
+    "case_id": "CC-0844",
+    "match_reasons": [
+     "shared_device:D_202420c4be"
+    ],
+    "method": "prior_cases_tool",
+    "score": 1.0
+   },
+   {
+    "case_id": "CC-2649",
+    "match_reasons": [],
+    "method": "graphrag_bm25",
+    "score": 13.3132
+   },
+   {
+    "case_id": "CC-2971",
+    "match_reasons": [],
+    "method": "graphrag_bm25",
+    "score": 13.3132
+   },
+   {
+    "case_id": "CC-2985",
+    "match_reasons": [],
+    "method": "graphrag_bm25",
+    "score": 13.3132
+   },
+   {
+    "case_id": "CC-3035",
+    "match_reasons": [],
+    "method": "graphrag_bm25",
+    "score": 13.3132
+   },
+   {
+    "case_id": "CC-1245",
+    "match_reasons": [],
+    "method": "graphrag_bm25",
+    "score": 0.9528
+   },
+   {
+    "case_id": "CC-2223",
+    "match_reasons": [],
+    "method": "graphrag_bm25",
+    "score": 0.9528
+   },
+   {
+    "case_id": "CC-2308",
+    "match_reasons": [],
+    "method": "graphrag_bm25",
+    "score": 0.9528
+   }
+  ]
+ },
+ "exposure_scope": {
+  "own_card_txns": 1,
+  "other_card_txns": 0,
+  "other_cards_with_txns": [],
+  "cards_expanded": 0,
+  "cards_not_expanded": 0,
+  "historical_cards_outside_window": 0,
+  "incomplete_reasons": [],
+  "discovery_window_gap_s": 3600,
+  "window_days": 30,
+  "device_ids": [],
+  "rule": "none",
+  "complete": true,
+  "other_card_exposure_usd": 0
+ },
+ "simulated_evidence_ids": [],
+ "uncertainty": {
+  "evidence_strength": "weak",
+  "independent_sources": 1,
+  "conflicts": [],
+  "missing": [
+   "customer response not available yet",
+   "no merchant field: policy R7 (recurring merchant) cannot be evaluated"
+  ],
+  "level": "medium",
+  "needs_more_evidence": true,
+  "calibrated_probability": {
+   "value": null,
+   "calibrated": false,
+   "source": "unavailable",
+   "method": "b3-v1",
+   "status": "unavailable_validation_gate_failed",
+   "gates_failed": [
+    "G3",
+    "G4"
+   ],
+   "gate_notes": [
+    "out-of-time validation failed for this evidence class",
+    "closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)"
+   ]
+  },
+  "reasons": [
+   "tier1-5 independent sources: 0",
+   "low-context sources: 1",
+   "model alert band: medium"
+  ]
+ },
+ "stop_reason": "requested evidence is pending (no simulated response); recommendations stand until it arrives",
+ "recommendation_only": true,
+ "graph_write": {
+  "graph_case_id": "CASE-HHG-017",
+  "revision": 1,
+  "action": "unchanged",
+  "content_sha256": "90934e8e419c65cd4f8bcc9b805cd26e51420ecb72f1970adbf93b631a8aa2b7",
+  "written_to_graph": true
+ },
+ "tool_calls": 10,
+ "agentic": {
+  "mode": "deterministic",
+  "fallback": null,
+  "fallback_used": false,
+  "forced_calls": [],
+  "request_decision": {
+   "policy_required": true,
+   "llm": null,
+   "final": true,
+   "source": "policy"
+  }
+ },
+ "tokens": 0,
+ "llm": {
+  "explanation": {
+   "used": false,
+   "reason": "template explainer"
+  },
+  "sar": {
+   "used": false,
+   "reason": "template narrative"
+  },
+  "tokens": 0,
+  "calls": 0
+ },
+ "latency_s": 14.2,
+ "trace": [
+  {
+   "step": 1,
+   "state": "INITIAL_INVESTIGATION",
+   "ms": 9045.6,
+   "tool_calls": [
+    "get_transaction_context",
+    "get_card_history",
+    "get_customer_history",
+    "find_shared_devices",
+    "find_prior_cases",
+    "detect_fraud_patterns",
+    "find_connected_entities",
+    "find_similar_cases",
+    "get_policy_context"
+   ],
+   "note": ""
+  },
+  {
+   "step": 2,
+   "state": "EVIDENCE_SYNTHESIS",
+   "ms": 0.1,
+   "tool_calls": [],
+   "note": ""
+  },
+  {
+   "step": 3,
+   "state": "UNCERTAINTY_ASSESSMENT",
+   "ms": 0.0,
+   "tool_calls": [],
+   "note": ""
+  },
+  {
+   "step": 4,
+   "state": "ADDITIONAL_EVIDENCE_REQUEST",
+   "ms": 0.0,
+   "tool_calls": [],
+   "note": "outcome=no_response (simulated)"
+  },
+  {
+   "step": 5,
+   "state": "NEXT_BEST_ACTION",
+   "ms": 1274.4,
+   "tool_calls": [
+    "retrieve_policy"
+   ],
+   "note": "initial=['STEP_UP_AUTH', 'MONITOR_CARD'] final=['STEP_UP_AUTH', 'MONITOR_CARD']"
+  },
+  {
+   "step": 6,
+   "state": "EXPLANATION",
+   "ms": 0.2,
+   "tool_calls": [],
+   "note": ""
+  },
+  {
+   "step": 7,
+   "state": "CASE_WRITE",
+   "ms": 3882.5,
+   "tool_calls": [],
+   "note": ""
+  }
+ ],
+ "gateway": {
+  "tool_calls": 10,
+  "graph_queries_executed": 9,
+  "cache_hits": 10,
+  "tool_ms_total": 16881.5,
+  "tool_ms_max": 6522.0
+ }
+}

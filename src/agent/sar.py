@@ -63,8 +63,10 @@ def reason_text(facts, filed, pattern):
     acts = set(facts["final_actions"])
     if filed:
         why = []
-        if "S01" in facts["fired"] or pattern == "undocumented":
-            why.append("R9: coordinated or repeated abuse across customers that fits no documented pattern")
+        if "S01" in facts["fired"]:
+            why.append("R9: coordinated abuse across customers (shared-origin device ring) that fits no documented pattern")
+        elif pattern == "undocumented":
+            why.append("the activity fits no documented fraud pattern (classified undocumented)" + (": repeated same-card purchases within one hour" if facts["s07"] else ""))
         if set(facts["fired"]) & {"S01", "S02a", "S02b"}:
             why.append("R6: shared device profile linking several cards")
         if facts["exposure"] > 1000:
@@ -110,8 +112,10 @@ def build_sar(agent, pattern, description):
     else:
         s.append("How: the linkage rests on the validated signals recorded in the case evidence.")
     why = []
-    if "S01" in facts["fired"] or pattern == "undocumented":
+    if "S01" in facts["fired"]:
         why.append("the pattern matches no documented fraud type but shows coordinated use of one device across many customers (policy R9)")
+    elif pattern == "undocumented":
+        why.append("the activity matches no documented fraud type" + (" and consists of repeated same-card purchases of $400 to $500 within one hour" if facts["s07"] else ""))
     if set(facts["fired"]) & {"S01", "S02a", "S02b"}:
         why.append("several cards are tied to one device profile (policy R6)")
     if facts["exposure"] > 1000:

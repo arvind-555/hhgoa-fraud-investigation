@@ -1,0 +1,874 @@
+{
+ "integrity": {
+  "ok": true,
+  "checks": [
+   {
+    "name": "case",
+    "match": true
+   },
+   {
+    "name": "summary",
+    "match": true
+   },
+   {
+    "name": "evidence claims",
+    "match": true
+   },
+   {
+    "name": "initial actions",
+    "match": true
+   },
+   {
+    "name": "final actions",
+    "match": true
+   },
+   {
+    "name": "sar",
+    "match": true
+   }
+  ],
+  "note": ""
+ },
+ "header": {
+  "case_id": "HHG-001",
+  "status": "closed_legitimate",
+  "verdict": "legitimate",
+  "pattern": "none",
+  "trigger_type": "risk_score",
+  "opened_at": "2016-12-05 01:55:28",
+  "as_of_note": "Evidence is limited to what existed at the time the case opened.",
+  "evidence_strength": "weak",
+  "uncertainty_level": "medium"
+ },
+ "trigger": {
+  "text": "Real-time model scored transaction 3514030 ($77.07, in billing region 444.0) at 0.61. Review and decide.",
+  "flagged_txn_id": "3514030",
+  "card_id": "C12382-K1",
+  "customer_id": "C12382",
+  "amount_usd": 77.07,
+  "channel": "In person (billing region 444)",
+  "trigger_type": "risk_score",
+  "opened_at": "2016-12-05 01:55:28"
+ },
+ "uncertainty": {
+  "evidence_strength": "weak",
+  "level": "medium",
+  "independent_sources": 1,
+  "conflicts": [],
+  "missing": [
+   "customer response not available yet",
+   "no merchant field: policy R7 (recurring merchant) cannot be evaluated"
+  ],
+  "reasons": [
+   "tier1-5 independent sources: 0",
+   "low-context sources: 2",
+   "model alert band: medium"
+  ],
+  "needs_more_evidence": true,
+  "before_verdict": "uncertain",
+  "after_verdict": "legitimate",
+  "after_status": "closed_legitimate",
+  "statement": "Before additional evidence, the evidence was not enough to settle this case on its own."
+ },
+ "requests": [
+  {
+   "type": "customer_validation",
+   "label": "Customer verification",
+   "asked_after_step": 9,
+   "assumed_response": "[SIMULATED] Customer states they made the transaction.",
+   "outcome": "verified_legitimate",
+   "simulated": true
+  }
+ ],
+ "evidence": [
+  {
+   "category": "Transaction",
+   "items": [
+    {
+     "id": "E3",
+     "title": "bank model alert band: medium (input, not a verdict)",
+     "source": "get_transaction_context",
+     "source_label": "Transaction context",
+     "rating": "CONTEXT",
+     "strength": "Context",
+     "why": "Context for the analyst. Not counted toward evidence strength.",
+     "entities": [],
+     "simulated": false
+    }
+   ]
+  },
+  {
+   "category": "Pattern signals",
+   "items": [
+    {
+     "id": "E1",
+     "title": "S05 Repeat victim: visible prior confirmed case on the card or customer",
+     "source": "detect_fraud_patterns",
+     "source_label": "Pattern detection",
+     "rating": "LOW",
+     "strength": "Weak",
+     "why": "Weak signal. Context only; cannot support a block on its own (policy R1).",
+     "entities": [
+      "CC-3587",
+      "CC-2964",
+      "CC-1673",
+      "CC-1066"
+     ],
+     "simulated": false
+    },
+    {
+     "id": "E2",
+     "title": "S15 In-person region differs from the card's modal in-person region (>=30 prior in-person)",
+     "source": "detect_fraud_patterns",
+     "source_label": "Pattern detection",
+     "rating": "LOW",
+     "strength": "Weak",
+     "why": "Weak signal. Context only; cannot support a block on its own (policy R1).",
+     "entities": [],
+     "simulated": false
+    }
+   ]
+  },
+  {
+   "category": "Similar cases",
+   "items": [
+    {
+     "id": "E4",
+     "title": "10 similar closed case(s) retrieved by GraphRAG (3 linked to this card/customer/device, 7 textual precedents; 10 were confirmed fraud): memory and wording context, not proof",
+     "source": "find_similar_cases",
+     "source_label": "Similar cases (GraphRAG)",
+     "rating": "CONTEXT",
+     "strength": "Context",
+     "why": "Context for the analyst. Not counted toward evidence strength.",
+     "entities": [
+      "CC-3587",
+      "CC-2964",
+      "CC-1066",
+      "CC-0782",
+      "CC-0005",
+      "CC-0016",
+      "CC-0030",
+      "CC-0041",
+      "CC-0043",
+      "CC-0044"
+     ],
+     "simulated": false
+    }
+   ]
+  },
+  {
+   "category": "Additional evidence",
+   "items": [
+    {
+     "id": "E5",
+     "title": "[SIMULATED] customer validation: verified_legitimate",
+     "source": "evidence_simulator",
+     "source_label": "evidence_simulator",
+     "rating": "HIGH",
+     "strength": "Strong",
+     "why": "Simulated response: not real customer evidence.",
+     "entities": [],
+     "simulated": true
+    }
+   ]
+  },
+  {
+   "category": "Policy",
+   "items": [
+    {
+     "id": "E6",
+     "title": "policy text consulted (policy:R1): When: The case rests on a single signal (including a risk score alone) and the assessed fraud probability is below 0.70. Actions: VERIFY_WITH_CUSTOMER or STEP_U",
+     "source": "policy:R1",
+     "source_label": "policy:R1",
+     "rating": "CONTEXT",
+     "strength": "Context",
+     "why": "Context for the analyst. Not counted toward evidence strength.",
+     "entities": [],
+     "simulated": false
+    },
+    {
+     "id": "E7",
+     "title": "policy text consulted (policy:R3): When: The customer confirms the transaction. Actions: CLOSE_NO_FRAUD (note the confirmation). Requires: a customer response",
+     "source": "policy:R3",
+     "source_label": "policy:R3",
+     "rating": "CONTEXT",
+     "strength": "Context",
+     "why": "Context for the analyst. Not counted toward evidence strength.",
+     "entities": [],
+     "simulated": false
+    }
+   ]
+  }
+ ],
+ "activity": {
+  "steps": [
+   {
+    "step": 1,
+    "state": "INITIAL_INVESTIGATION",
+    "label": "Evidence gathering",
+    "start_ms": 0,
+    "duration_ms": 17793,
+    "tool_calls": 9,
+    "note": ""
+   },
+   {
+    "step": 2,
+    "state": "EVIDENCE_SYNTHESIS",
+    "label": "Evidence synthesis",
+    "start_ms": 17793,
+    "duration_ms": 0,
+    "tool_calls": 0,
+    "note": ""
+   },
+   {
+    "step": 3,
+    "state": "UNCERTAINTY_ASSESSMENT",
+    "label": "Uncertainty assessment",
+    "start_ms": 17793,
+    "duration_ms": 0,
+    "tool_calls": 0,
+    "note": ""
+   },
+   {
+    "step": 4,
+    "state": "ADDITIONAL_EVIDENCE_REQUEST",
+    "label": "Additional evidence",
+    "start_ms": 17793,
+    "duration_ms": 0,
+    "tool_calls": 0,
+    "note": "outcome=verified_legitimate (simulated)"
+   },
+   {
+    "step": 5,
+    "state": "NEXT_BEST_ACTION",
+    "label": "Next best action",
+    "start_ms": 17793,
+    "duration_ms": 1261,
+    "tool_calls": 1,
+    "note": "initial=['VERIFY_WITH_CUSTOMER', 'MONITOR_CARD'] final=['CLOSE_NO_FRAUD']"
+   },
+   {
+    "step": 6,
+    "state": "EXPLANATION",
+    "label": "Case explanation",
+    "start_ms": 19055,
+    "duration_ms": 0,
+    "tool_calls": 0,
+    "note": ""
+   },
+   {
+    "step": 7,
+    "state": "CASE_WRITE",
+    "label": "Case written to TigerGraph",
+    "start_ms": 19055,
+    "duration_ms": 6014,
+    "tool_calls": 0,
+    "note": ""
+   }
+  ],
+  "tools": [
+   {
+    "tool": "detect_fraud_patterns",
+    "label": "Pattern detection",
+    "evidence_count": 2,
+    "top": [
+     "S05 Repeat victim: visible prior confirmed case on the card or customer",
+     "S15 In-person region differs from the card's modal in-person region (>=30 prior in-person)"
+    ]
+   },
+   {
+    "tool": "get_transaction_context",
+    "label": "Transaction context",
+    "evidence_count": 1,
+    "top": [
+     "bank model alert band: medium (input, not a verdict)"
+    ]
+   },
+   {
+    "tool": "find_similar_cases",
+    "label": "Similar cases (GraphRAG)",
+    "evidence_count": 1,
+    "top": [
+     "10 similar closed case(s) retrieved by GraphRAG (3 linked to this card/customer/device, 7 textual precedents; 10 were confirmed fraud): memory and wording context, not proof"
+    ]
+   }
+  ],
+  "events": [
+   {
+    "stage": "trigger",
+    "label": "Investigation triggered",
+    "tool": null,
+    "source": "Case pack trigger",
+    "status": "done",
+    "summary": "Real-time model scored transaction 3514030 ($77.07, in billing region 444.0) at 0.61. Review and decide.",
+    "detail": [],
+    "reveal": [
+     "hero"
+    ],
+    "simulated": false,
+    "step": 0,
+    "i": 0
+   },
+   {
+    "stage": "gather",
+    "label": "Transaction context",
+    "tool": "get_transaction_context",
+    "source": "Transaction context",
+    "status": "done",
+    "step": 1,
+    "simulated": false,
+    "summary": "1 evidence item(s): bank model alert band: medium (input, not a verdict)",
+    "detail": [
+     "E3 [Context] bank model alert band: medium (input, not a verdict)",
+     "1 call"
+    ],
+    "reveal": [
+     "evidence"
+    ],
+    "i": 1
+   },
+   {
+    "stage": "gather",
+    "label": "Shared-device analysis",
+    "tool": "find_shared_devices",
+    "source": "Shared-device analysis",
+    "status": "done",
+    "step": 1,
+    "simulated": false,
+    "summary": "Retrieved; nothing notable recorded as evidence",
+    "detail": [
+     "1 call"
+    ],
+    "reveal": [
+     "graph",
+     "evidence"
+    ],
+    "i": 2
+   },
+   {
+    "stage": "gather",
+    "label": "Customer history analyzed",
+    "tool": "get_customer_history",
+    "source": "Customer history",
+    "status": "done",
+    "step": 1,
+    "simulated": false,
+    "summary": "Retrieved; nothing notable recorded as evidence",
+    "detail": [
+     "1 call"
+    ],
+    "reveal": [
+     "evidence"
+    ],
+    "i": 3
+   },
+   {
+    "stage": "gather",
+    "label": "Card history analyzed",
+    "tool": "get_card_history",
+    "source": "Card history",
+    "status": "done",
+    "step": 1,
+    "simulated": false,
+    "summary": "Retrieved; nothing notable recorded as evidence",
+    "detail": [
+     "1 call"
+    ],
+    "reveal": [
+     "evidence"
+    ],
+    "i": 4
+   },
+   {
+    "stage": "gather",
+    "label": "Prior cases",
+    "tool": "find_prior_cases",
+    "source": "Prior cases",
+    "status": "done",
+    "step": 1,
+    "simulated": false,
+    "summary": "Retrieved; nothing notable recorded as evidence",
+    "detail": [
+     "1 call"
+    ],
+    "reveal": [
+     "evidence"
+    ],
+    "i": 5
+   },
+   {
+    "stage": "gather",
+    "label": "Connected entities",
+    "tool": "find_connected_entities",
+    "source": "Connected entities",
+    "status": "done",
+    "step": 1,
+    "simulated": false,
+    "summary": "Retrieved; nothing notable recorded as evidence",
+    "detail": [
+     "1 call"
+    ],
+    "reveal": [
+     "graph"
+    ],
+    "i": 6
+   },
+   {
+    "stage": "gather",
+    "label": "Pattern detection",
+    "tool": "detect_fraud_patterns",
+    "source": "Pattern detection",
+    "status": "done",
+    "step": 1,
+    "simulated": false,
+    "summary": "2 evidence item(s): S05 Repeat victim: visible prior confirmed case on the card or customer; S15 In-person region differs from the card's modal in-person region (>=30 prior in-person)",
+    "detail": [
+     "E1 [Weak] S05 Repeat victim: visible prior confirmed case on the card or customer",
+     "E2 [Weak] S15 In-person region differs from the card's modal in-person region (>=30 prior in-person)",
+     "1 call"
+    ],
+    "reveal": [
+     "patterns"
+    ],
+    "i": 7
+   },
+   {
+    "stage": "gather",
+    "label": "Similar cases (GraphRAG)",
+    "tool": "find_similar_cases",
+    "source": "Similar cases (GraphRAG)",
+    "status": "done",
+    "step": 1,
+    "simulated": false,
+    "summary": "1 evidence item(s): 10 similar closed case(s) retrieved by GraphRAG (3 linked to this card/customer/device, 7 ",
+    "detail": [
+     "E4 [Context] 10 similar closed case(s) retrieved by GraphRAG (3 linked to this card/customer/device, 7 textual precedents; 10 were confirmed fraud): memory and wording context, not proof",
+     "1 call"
+    ],
+    "reveal": [
+     "evidence"
+    ],
+    "i": 8
+   },
+   {
+    "stage": "gather",
+    "label": "Policy evaluation",
+    "tool": "get_policy_context",
+    "source": "Policy evaluation",
+    "status": "done",
+    "step": 1,
+    "simulated": false,
+    "summary": "Retrieved; nothing notable recorded as evidence",
+    "detail": [
+     "1 call"
+    ],
+    "reveal": [
+     "policy"
+    ],
+    "i": 9
+   },
+   {
+    "stage": "synthesis",
+    "label": "Evidence synthesized",
+    "tool": null,
+    "source": "Deterministic evidence hierarchy",
+    "status": "done",
+    "step": 2,
+    "simulated": false,
+    "summary": "Evidence strength: weak (1 independent source(s))",
+    "detail": [],
+    "reveal": [
+     "patterns",
+     "evidence"
+    ],
+    "i": 10
+   },
+   {
+    "stage": "uncertainty",
+    "label": "Uncertainty assessed",
+    "tool": null,
+    "source": "Deterministic uncertainty model",
+    "status": "done",
+    "step": 3,
+    "simulated": false,
+    "summary": "Evidence is insufficient to settle the case: more evidence needed",
+    "detail": [
+     "customer response not available yet",
+     "no merchant field: policy R7 (recurring merchant) cannot be evaluated"
+    ],
+    "reveal": [
+     "uncertainty"
+    ],
+    "i": 11
+   },
+   {
+    "stage": "request",
+    "label": "Customer verification requested",
+    "tool": null,
+    "source": "Simulated responder",
+    "status": "verified_legitimate",
+    "step": 4,
+    "simulated": true,
+    "summary": "[SIMULATED] Customer states they made the transaction.",
+    "detail": [],
+    "reveal": [
+     "requests"
+    ],
+    "i": 12
+   },
+   {
+    "stage": "action",
+    "label": "Next-best action selected",
+    "tool": null,
+    "source": "Deterministic action engine",
+    "status": "done",
+    "step": 5,
+    "simulated": false,
+    "summary": "CLOSE_NO_FRAUD [auto]",
+    "detail": [],
+    "reveal": [
+     "action"
+    ],
+    "i": 13
+   },
+   {
+    "stage": "explain",
+    "label": "Explanation prepared",
+    "tool": null,
+    "source": "Template explainer",
+    "status": "done",
+    "step": 6,
+    "simulated": false,
+    "summary": "Case summary and SAR decision assembled",
+    "detail": [],
+    "reveal": [
+     "summary",
+     "sar"
+    ],
+    "i": 14
+   },
+   {
+    "stage": "write",
+    "label": "Case written to TigerGraph",
+    "tool": null,
+    "source": "Case writer",
+    "status": "done",
+    "step": 7,
+    "simulated": false,
+    "summary": "CASE-HHG-001 \u00b7 revision 1 \u00b7 unchanged",
+    "detail": [],
+    "reveal": [
+     "case"
+    ],
+    "i": 15
+   }
+  ],
+  "total_ms": 25068
+ },
+ "actions": {
+  "initial": [
+   {
+    "action": "VERIFY_WITH_CUSTOMER",
+    "route": "auto",
+    "route_label": "Automatic (no approval)",
+    "reason": "R1: only weak/context signals or the model score; verify before any block",
+    "rules": [],
+    "requires_approval": false,
+    "executed": false
+   },
+   {
+    "action": "MONITOR_CARD",
+    "route": "auto",
+    "route_label": "Automatic (no approval)",
+    "reason": "R1: watch the card while evidence is pending",
+    "rules": [],
+    "requires_approval": false,
+    "executed": false
+   }
+  ],
+  "final": [
+   {
+    "action": "CLOSE_NO_FRAUD",
+    "route": "auto",
+    "route_label": "Automatic (no approval)",
+    "reason": "R3: customer confirms the transaction (confirmation noted in the case)",
+    "rules": [],
+    "requires_approval": false,
+    "executed": false
+   }
+  ],
+  "what_changed": "the verified_legitimate response changed the recommendation"
+ },
+ "case": {
+  "status": "closed_legitimate",
+  "verdict": "legitimate",
+  "pattern": "none",
+  "pattern_description": "",
+  "summary": "Evidence strength: weak (only weak context signals (not independent proof); 1 independent source(s)); weak context only: S05 Repeat victim: visible prior confirmed case on the card or customer; S15 In-person region differs from the card's modal in-person region (>=30 prior in-person); simulated response (not real evidence): [SIMULATED] customer validation: verified_legitimate. Investigation uncertainty: medium; not available or unresolved: customer response not available yet, no merchant field: policy R7 (recurring merchant) cannot be evaluated; evidence requested (customer_validation), outcome: verified_legitimate. Calibrated probability: not available, because the calibration procedure did not pass its validation gates on the available history (out-of-time validation failed for this evidence class; closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)), so no probability is stated. Recommended (not executed): CLOSE_NO_FRAUD (auto, R3).",
+  "affected_txn_ids": [],
+  "first_suspicious_txn_id": "",
+  "exposure_usd": 0,
+  "connected_card_ids": [],
+  "connected_device_profiles": [],
+  "similar_prior_cases": [
+   "CC-3587",
+   "CC-2964",
+   "CC-1066",
+   "CC-0782",
+   "CC-0005",
+   "CC-0016",
+   "CC-0030",
+   "CC-0041",
+   "CC-0043",
+   "CC-0044"
+  ],
+  "written_to_graph": true,
+  "graph_case_id": "CASE-HHG-001",
+  "revision": 1,
+  "graph_write_action": "unchanged",
+  "fraud_probability": null,
+  "probability_note": "No probability is stated: the calibration procedure did not pass its validation gates on the available history (out-of-time validation failed for this evidence class; closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)).",
+  "stop_reason": "simulated customer confirmation settles the question (R3)"
+ },
+ "sar": {
+  "file": false,
+  "reason": "No report: policy section 3a requires fraud confirmed or strongly suspected AND (exposure above $1,000, a shared device/region cluster or another customer's fraud, or a coordinated/undocumented pattern); this case does not meet it (final actions: CLOSE_NO_FRAUD).",
+  "narrative": "",
+  "subjects": [],
+  "total_amount_usd": 0,
+  "activity_dates": []
+ },
+ "measured": {
+  "tool_calls": 10,
+  "tokens": 0,
+  "latency_s": 24.62,
+  "mode": "deterministic"
+ },
+ "graph": {
+  "nodes": [
+   {
+    "id": "CASE-HHG-001",
+    "kind": "case",
+    "label": "HHG-001",
+    "detail": {
+     "verdict": "legitimate",
+     "status": "closed_legitimate",
+     "exposure_usd": 0,
+     "pattern": "none"
+    },
+    "focus": true
+   },
+   {
+    "id": "C12382",
+    "kind": "customer",
+    "label": "C12382",
+    "focus": true
+   },
+   {
+    "id": "C12382-K1",
+    "kind": "card",
+    "label": "C12382-K1",
+    "focus": true
+   },
+   {
+    "id": "txn:3514030",
+    "kind": "txn",
+    "label": "3514030",
+    "detail": {
+     "flagged": true,
+     "first": false,
+     "note": "flagged transaction (not part of a fraud episode)"
+    },
+    "focus": true
+   },
+   {
+    "id": "CC-3587",
+    "kind": "prior",
+    "label": "CC-3587",
+    "hidden": false,
+    "detail": {
+     "note": "textual precedent retrieved by GraphRAG (memory, not proof)"
+    }
+   },
+   {
+    "id": "CC-2964",
+    "kind": "prior",
+    "label": "CC-2964",
+    "hidden": false,
+    "detail": {
+     "note": "textual precedent retrieved by GraphRAG (memory, not proof)"
+    }
+   },
+   {
+    "id": "CC-1066",
+    "kind": "prior",
+    "label": "CC-1066",
+    "hidden": false,
+    "detail": {
+     "note": "textual precedent retrieved by GraphRAG (memory, not proof)"
+    }
+   },
+   {
+    "id": "CC-0782",
+    "kind": "prior",
+    "label": "CC-0782",
+    "hidden": false,
+    "detail": {
+     "note": "textual precedent retrieved by GraphRAG (memory, not proof)"
+    }
+   },
+   {
+    "id": "CC-0005",
+    "kind": "prior",
+    "label": "CC-0005",
+    "hidden": false,
+    "detail": {
+     "note": "textual precedent retrieved by GraphRAG (memory, not proof)"
+    }
+   },
+   {
+    "id": "CC-0016",
+    "kind": "prior",
+    "label": "CC-0016",
+    "hidden": false,
+    "detail": {
+     "note": "textual precedent retrieved by GraphRAG (memory, not proof)"
+    }
+   },
+   {
+    "id": "CC-0030",
+    "kind": "prior",
+    "label": "CC-0030",
+    "hidden": false,
+    "detail": {
+     "note": "textual precedent retrieved by GraphRAG (memory, not proof)"
+    }
+   },
+   {
+    "id": "CC-0041",
+    "kind": "prior",
+    "label": "CC-0041",
+    "hidden": false,
+    "detail": {
+     "note": "textual precedent retrieved by GraphRAG (memory, not proof)"
+    }
+   },
+   {
+    "id": "CC-0043",
+    "kind": "prior",
+    "label": "CC-0043",
+    "hidden": false,
+    "detail": {
+     "note": "textual precedent retrieved by GraphRAG (memory, not proof)"
+    }
+   },
+   {
+    "id": "CC-0044",
+    "kind": "prior",
+    "label": "CC-0044",
+    "hidden": false,
+    "detail": {
+     "note": "textual precedent retrieved by GraphRAG (memory, not proof)"
+    }
+   }
+  ],
+  "edges": [
+   {
+    "source": "C12382",
+    "target": "C12382-K1",
+    "rel": "OWNS"
+   },
+   {
+    "source": "CASE-HHG-001",
+    "target": "C12382-K1",
+    "rel": "CASE_ON_CARD"
+   },
+   {
+    "source": "C12382-K1",
+    "target": "txn:3514030",
+    "rel": "MADE"
+   },
+   {
+    "source": "CASE-HHG-001",
+    "target": "CC-3587",
+    "rel": "SIMILAR_CASE"
+   },
+   {
+    "source": "CASE-HHG-001",
+    "target": "CC-2964",
+    "rel": "SIMILAR_CASE"
+   },
+   {
+    "source": "CASE-HHG-001",
+    "target": "CC-1066",
+    "rel": "SIMILAR_CASE"
+   },
+   {
+    "source": "CASE-HHG-001",
+    "target": "CC-0782",
+    "rel": "SIMILAR_CASE"
+   },
+   {
+    "source": "CASE-HHG-001",
+    "target": "CC-0005",
+    "rel": "SIMILAR_CASE"
+   },
+   {
+    "source": "CASE-HHG-001",
+    "target": "CC-0016",
+    "rel": "SIMILAR_CASE"
+   },
+   {
+    "source": "CASE-HHG-001",
+    "target": "CC-0030",
+    "rel": "SIMILAR_CASE"
+   },
+   {
+    "source": "CASE-HHG-001",
+    "target": "CC-0041",
+    "rel": "SIMILAR_CASE"
+   },
+   {
+    "source": "CASE-HHG-001",
+    "target": "CC-0043",
+    "rel": "SIMILAR_CASE"
+   },
+   {
+    "source": "CASE-HHG-001",
+    "target": "CC-0044",
+    "rel": "SIMILAR_CASE"
+   }
+  ],
+  "legend": [
+   {
+    "kind": "case",
+    "label": "Current case"
+   },
+   {
+    "kind": "customer",
+    "label": "Customer"
+   },
+   {
+    "kind": "card",
+    "label": "Card"
+   },
+   {
+    "kind": "txn",
+    "label": "Transaction"
+   },
+   {
+    "kind": "device",
+    "label": "Device profile"
+   },
+   {
+    "kind": "cluster",
+    "label": "Connected cards"
+   },
+   {
+    "kind": "prior",
+    "label": "Prior case"
+   }
+  ],
+  "note": "Built from the stored investigation record. Email domains and billing regions are not part of the stored record and are not drawn."
+ }
+}

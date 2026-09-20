@@ -160,8 +160,8 @@
   },
   "sar": {
     "file": true,
-    "reason": "FILE_REPORT recommended (policy section 3a): R9: coordinated or repeated abuse across customers that fits no documented pattern; exposure above $1,000.",
-    "narrative": "Who: the subject is customer C07297, holder of card C07297-K1. What: 4 transaction(s) totalling $1,906.07 across 1 card(s) were identified as one suspected fraud episode, beginning with transaction 3476602. When: the activity ran from 2016-11-21 to 2016-11-21, and the transaction under review occurred on 2016-11-21. Where: the activity was online, with the reviewed transaction billed in billing region 264. How: repeated same-card purchases of $400 to $500 under product code C occurred within one hour. Why suspicious: the pattern matches no documented fraud type but shows coordinated use of one device across many customers (policy R9); the total exceeds $1,000. Customer contact: the recorded response is simulated for this exercise and is not real customer evidence. Recommended next actions (recommendations only, none executed): BLOCK_CARD, CREATE_CASE, FILE_REPORT. All identifiers and amounts are taken from the bank's transaction records as they stood when the case was opened.",
+    "reason": "FILE_REPORT recommended (policy section 3a): the activity fits no documented fraud pattern (classified undocumented): repeated same-card purchases within one hour; exposure above $1,000.",
+    "narrative": "Who: the subject is customer C07297, holder of card C07297-K1. What: 4 transaction(s) totalling $1,906.07 across 1 card(s) were identified as one suspected fraud episode, beginning with transaction 3476602. When: the activity ran from 2016-11-21 to 2016-11-21, and the transaction under review occurred on 2016-11-21. Where: the activity was online, with the reviewed transaction billed in billing region 264. How: repeated same-card purchases of $400 to $500 under product code C occurred within one hour. Why suspicious: the activity matches no documented fraud type and consists of repeated same-card purchases of $400 to $500 within one hour; the total exceeds $1,000. Customer contact: the recorded response is simulated for this exercise and is not real customer evidence. Recommended next actions (recommendations only, none executed): BLOCK_CARD, CREATE_CASE, FILE_REPORT. All identifiers and amounts are taken from the bank's transaction records as they stood when the case was opened.",
     "subjects": [
       "C07297",
       "C07297-K1"
@@ -175,5 +175,5 @@
   "stop_reason": "simulated customer denial settles the question (R2)",
   "tool_calls": 10,
   "tokens": 0,
-  "latency_s": 24.58
+  "latency_s": 30.59
 }

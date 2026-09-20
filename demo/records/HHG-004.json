@@ -1,0 +1,791 @@
+{
+ "case_id": "HHG-004",
+ "case": {
+  "status": "open",
+  "verdict": "uncertain",
+  "fraud_probability": null,
+  "probability_calibrated": false,
+  "probability_source": "unavailable",
+  "calibration": {
+   "method": "b3-v1",
+   "gates_failed": [
+    "G3",
+    "G4"
+   ]
+  },
+  "pattern": "none",
+  "pattern_description": "",
+  "affected_txn_ids": [
+   "3583227"
+  ],
+  "first_suspicious_txn_id": "3583227",
+  "connected_card_ids": [],
+  "connected_device_profiles": [],
+  "exposure_usd": 128.33,
+  "evidence": [
+   {
+    "claim": "S05 Repeat victim: visible prior confirmed case on the card or customer",
+    "source": "graph",
+    "ref": "detect_fraud_patterns",
+    "simulated": false,
+    "entity_ids": [
+     "CC-3778",
+     "CC-2121",
+     "CC-1736"
+    ],
+    "evidence_id": "E1",
+    "rating": "LOW"
+   },
+   {
+    "claim": "S10 Online id_15 = New",
+    "source": "graph",
+    "ref": "detect_fraud_patterns",
+    "simulated": false,
+    "entity_ids": [],
+    "evidence_id": "E2",
+    "rating": "LOW"
+   },
+   {
+    "claim": "S13 Online billing region (addr1) missing",
+    "source": "graph",
+    "ref": "detect_fraud_patterns",
+    "simulated": false,
+    "entity_ids": [],
+    "evidence_id": "E3",
+    "rating": "LOW"
+   },
+   {
+    "claim": "card C11923-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C11923-K2"
+    ],
+    "evidence_id": "E4",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C05031-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C05031-K2"
+    ],
+    "evidence_id": "E5",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C05381-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C05381-K2"
+    ],
+    "evidence_id": "E6",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C04597-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C04597-K2"
+    ],
+    "evidence_id": "E7",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C05307-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C05307-K2"
+    ],
+    "evidence_id": "E8",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C06744-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C06744-K2"
+    ],
+    "evidence_id": "E9",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C08962-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C08962-K2"
+    ],
+    "evidence_id": "E10",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C11509-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C11509-K2"
+    ],
+    "evidence_id": "E11",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C09657-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C09657-K2"
+    ],
+    "evidence_id": "E12",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C06630-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C06630-K2"
+    ],
+    "evidence_id": "E13",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C10957-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C10957-K2"
+    ],
+    "evidence_id": "E14",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C00426-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C00426-K2"
+    ],
+    "evidence_id": "E15",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C02147-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C02147-K2"
+    ],
+    "evidence_id": "E16",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C11444-K1 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C11444-K1"
+    ],
+    "evidence_id": "E17",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C13171-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C13171-K2"
+    ],
+    "evidence_id": "E18",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C00294-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C00294-K2"
+    ],
+    "evidence_id": "E19",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C00466-K1 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C00466-K1"
+    ],
+    "evidence_id": "E20",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C00854-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C00854-K2"
+    ],
+    "evidence_id": "E21",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C02585-K1 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C02585-K1"
+    ],
+    "evidence_id": "E22",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C02689-K1 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C02689-K1"
+    ],
+    "evidence_id": "E23",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C02851-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C02851-K2"
+    ],
+    "evidence_id": "E24",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C03607-K1 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C03607-K1"
+    ],
+    "evidence_id": "E25",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C04248-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C04248-K2"
+    ],
+    "evidence_id": "E26",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C05245-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C05245-K2"
+    ],
+    "evidence_id": "E27",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C06224-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C06224-K2"
+    ],
+    "evidence_id": "E28",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C06940-K1 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C06940-K1"
+    ],
+    "evidence_id": "E29",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C07508-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C07508-K2"
+    ],
+    "evidence_id": "E30",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C08537-K1 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C08537-K1"
+    ],
+    "evidence_id": "E31",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C11597-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C11597-K2"
+    ],
+    "evidence_id": "E32",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C12258-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C12258-K2"
+    ],
+    "evidence_id": "E33",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C12680-K1 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C12680-K1"
+    ],
+    "evidence_id": "E34",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "bank model alert band: low (input, not a verdict)",
+    "source": "graph",
+    "ref": "get_transaction_context",
+    "simulated": false,
+    "entity_ids": [],
+    "evidence_id": "E35",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "2 visible cleared case(s) related to this card/customer (history, not proof)",
+    "source": "graph",
+    "ref": "find_prior_cases",
+    "simulated": false,
+    "entity_ids": [
+     "CC-4352",
+     "CC-0696"
+    ],
+    "evidence_id": "E36",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "10 similar closed case(s) retrieved by GraphRAG (5 linked to this card/customer/device, 5 textual precedents; 5 were confirmed fraud): memory and wording context, not proof",
+    "source": "graph",
+    "ref": "find_similar_cases",
+    "simulated": false,
+    "entity_ids": [
+     "CC-5122",
+     "CC-5140",
+     "CC-5176",
+     "CC-5202",
+     "CC-5015",
+     "CC-0098",
+     "CC-0483",
+     "CC-2238",
+     "CC-4589",
+     "CC-0009"
+    ],
+    "evidence_id": "E37",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "policy text consulted (policy:3a): A case is not a report. Two different things, and the agent produces both.\n\nA case (CREATE_CASE) is the bank's internal record of an investigation. Open one whe",
+    "source": "document",
+    "ref": "document:policy:3a",
+    "simulated": false,
+    "entity_ids": [],
+    "evidence_id": "E38",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "policy text consulted (policy:R1): When: The case rests on a single signal (including a risk score alone) and the assessed fraud probability is below 0.70. Actions: VERIFY_WITH_CUSTOMER or STEP_U",
+    "source": "document",
+    "ref": "document:policy:R1",
+    "simulated": false,
+    "entity_ids": [],
+    "evidence_id": "E39",
+    "rating": "CONTEXT"
+   }
+  ],
+  "similar_prior_cases": [
+   "CC-5122",
+   "CC-5140",
+   "CC-5176",
+   "CC-5202",
+   "CC-5015",
+   "CC-0098",
+   "CC-0483",
+   "CC-2238",
+   "CC-4589",
+   "CC-0009"
+  ],
+  "summary": "Evidence strength: weak (only weak context signals (not independent proof); 1 independent source(s)); weak context only: S05 Repeat victim: visible prior confirmed case on the card or customer [E1]; S10 Online id_15 = New [E2]; S13 Online billing region (addr1) missing [E3]. Investigation uncertainty: medium; not available or unresolved: customer response not available yet, no merchant field: policy R7 (recurring merchant) cannot be evaluated; evidence requested (customer_validation), outcome: no_response. Calibrated probability: not available, because the calibration procedure did not pass its validation gates on the available history (out-of-time validation failed for this evidence class; closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)), so no probability is stated. Recommended (not executed): STEP_UP_AUTH (auto, R1), MONITOR_CARD (auto, R1), CREATE_CASE (auto, 3a).",
+  "written_to_graph": true,
+  "graph_case_id": "CASE-HHG-004"
+ },
+ "evidence_requests": [
+  {
+   "type": "customer_validation",
+   "asked_after_step": 9,
+   "assumed_response": "[SIMULATED] No response received; evidence remains pending.",
+   "simulated": true,
+   "request_id": "HHG-004:REQ1",
+   "outcome": "no_response"
+  }
+ ],
+ "next_best_actions": {
+  "initial": [
+   {
+    "action": "STEP_UP_AUTH",
+    "route": "auto",
+    "reason": "R1: only weak/context signals or the model score; verify before any block",
+    "rules": [
+     "R1"
+    ],
+    "executed": false,
+    "requires_approval": false
+   },
+   {
+    "action": "MONITOR_CARD",
+    "route": "auto",
+    "reason": "watch the card while evidence is pending",
+    "rules": [
+     "R1"
+    ],
+    "executed": false,
+    "requires_approval": false
+   },
+   {
+    "action": "CREATE_CASE",
+    "route": "auto",
+    "reason": "customer dispute always opens a case (3a)",
+    "rules": [
+     "3a"
+    ],
+    "executed": false,
+    "requires_approval": false
+   }
+  ],
+  "final": [
+   {
+    "action": "STEP_UP_AUTH",
+    "route": "auto",
+    "reason": "R1: only weak/context signals or the model score; verify before any block",
+    "rules": [
+     "R1"
+    ],
+    "executed": false,
+    "requires_approval": false
+   },
+   {
+    "action": "MONITOR_CARD",
+    "route": "auto",
+    "reason": "watch the card while evidence is pending",
+    "rules": [
+     "R1"
+    ],
+    "executed": false,
+    "requires_approval": false
+   },
+   {
+    "action": "CREATE_CASE",
+    "route": "auto",
+    "reason": "customer dispute always opens a case (3a)",
+    "rules": [
+     "3a"
+    ],
+    "executed": false,
+    "requires_approval": false
+   }
+  ],
+  "what_changed": "nothing"
+ },
+ "sar": {
+  "file": false,
+  "reason": "No report: policy section 3a requires fraud confirmed or strongly suspected AND (exposure above $1,000, a shared device/region cluster or another customer's fraud, or a coordinated/undocumented pattern); this case does not meet it (final actions: CREATE_CASE, MONITOR_CARD, STEP_UP_AUTH).",
+  "narrative": "",
+  "subjects": [],
+  "total_amount_usd": 0,
+  "activity_dates": []
+ },
+ "graph_refs": {
+  "card_id": "C08106-K1",
+  "customer_id": "C08106",
+  "flagged_txn_id": "3583227",
+  "device_ids": [],
+  "connected_cards": {},
+  "similar_cases": [
+   {
+    "case_id": "CC-5122",
+    "match_reasons": [
+     "shared_device:D_19c7cef517"
+    ],
+    "method": "prior_cases_tool",
+    "score": 1.0
+   },
+   {
+    "case_id": "CC-5140",
+    "match_reasons": [
+     "shared_device:D_19c7cef517"
+    ],
+    "method": "prior_cases_tool",
+    "score": 1.0
+   },
+   {
+    "case_id": "CC-5176",
+    "match_reasons": [
+     "shared_device:D_19c7cef517"
+    ],
+    "method": "prior_cases_tool",
+    "score": 1.0
+   },
+   {
+    "case_id": "CC-5202",
+    "match_reasons": [
+     "shared_device:D_19c7cef517"
+    ],
+    "method": "prior_cases_tool",
+    "score": 1.0
+   },
+   {
+    "case_id": "CC-5015",
+    "match_reasons": [
+     "shared_device:D_d15be2435c"
+    ],
+    "method": "prior_cases_tool",
+    "score": 1.0
+   },
+   {
+    "case_id": "CC-0098",
+    "match_reasons": [],
+    "method": "graphrag_bm25",
+    "score": 4.9549
+   },
+   {
+    "case_id": "CC-0483",
+    "match_reasons": [],
+    "method": "graphrag_bm25",
+    "score": 4.9549
+   },
+   {
+    "case_id": "CC-2238",
+    "match_reasons": [],
+    "method": "graphrag_bm25",
+    "score": 4.9549
+   },
+   {
+    "case_id": "CC-4589",
+    "match_reasons": [],
+    "method": "graphrag_bm25",
+    "score": 4.9549
+   },
+   {
+    "case_id": "CC-0009",
+    "match_reasons": [],
+    "method": "graphrag_bm25",
+    "score": 4.8898
+   }
+  ]
+ },
+ "exposure_scope": {
+  "own_card_txns": 1,
+  "other_card_txns": 0,
+  "other_cards_with_txns": [],
+  "cards_expanded": 0,
+  "cards_not_expanded": 0,
+  "historical_cards_outside_window": 0,
+  "incomplete_reasons": [],
+  "discovery_window_gap_s": 21600,
+  "window_days": 30,
+  "device_ids": [],
+  "rule": "none",
+  "complete": true,
+  "other_card_exposure_usd": 0
+ },
+ "simulated_evidence_ids": [],
+ "uncertainty": {
+  "evidence_strength": "weak",
+  "independent_sources": 1,
+  "conflicts": [],
+  "missing": [
+   "customer response not available yet",
+   "no merchant field: policy R7 (recurring merchant) cannot be evaluated"
+  ],
+  "level": "medium",
+  "needs_more_evidence": true,
+  "calibrated_probability": {
+   "value": null,
+   "calibrated": false,
+   "source": "unavailable",
+   "method": "b3-v1",
+   "status": "unavailable_validation_gate_failed",
+   "gates_failed": [
+    "G3",
+    "G4"
+   ],
+   "gate_notes": [
+    "out-of-time validation failed for this evidence class",
+    "closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)"
+   ]
+  },
+  "reasons": [
+   "tier1-5 independent sources: 0",
+   "low-context sources: 2",
+   "model alert band: low"
+  ]
+ },
+ "stop_reason": "requested evidence is pending (no simulated response); recommendations stand until it arrives",
+ "recommendation_only": true,
+ "graph_write": {
+  "graph_case_id": "CASE-HHG-004",
+  "revision": 1,
+  "action": "unchanged",
+  "content_sha256": "04a0626de729855815f6ec06def669e8657bbdf7ba1a49a2db21e3440a0cb92a",
+  "written_to_graph": true
+ },
+ "tool_calls": 10,
+ "agentic": {
+  "mode": "deterministic",
+  "fallback": null,
+  "fallback_used": false,
+  "forced_calls": [],
+  "request_decision": {
+   "policy_required": true,
+   "llm": null,
+   "final": true,
+   "source": "policy"
+  }
+ },
+ "tokens": 0,
+ "llm": {
+  "explanation": {
+   "used": false,
+   "reason": "template explainer"
+  },
+  "sar": {
+   "used": false,
+   "reason": "template narrative"
+  },
+  "tokens": 0,
+  "calls": 0
+ },
+ "latency_s": 15.46,
+ "trace": [
+  {
+   "step": 1,
+   "state": "INITIAL_INVESTIGATION",
+   "ms": 10244.9,
+   "tool_calls": [
+    "get_transaction_context",
+    "get_customer_history",
+    "get_card_history",
+    "find_shared_devices",
+    "find_prior_cases",
+    "detect_fraud_patterns",
+    "find_connected_entities",
+    "find_similar_cases",
+    "get_policy_context"
+   ],
+   "note": ""
+  },
+  {
+   "step": 2,
+   "state": "EVIDENCE_SYNTHESIS",
+   "ms": 0.4,
+   "tool_calls": [],
+   "note": ""
+  },
+  {
+   "step": 3,
+   "state": "UNCERTAINTY_ASSESSMENT",
+   "ms": 0.0,
+   "tool_calls": [],
+   "note": ""
+  },
+  {
+   "step": 4,
+   "state": "ADDITIONAL_EVIDENCE_REQUEST",
+   "ms": 0.0,
+   "tool_calls": [],
+   "note": "outcome=no_response (simulated)"
+  },
+  {
+   "step": 5,
+   "state": "NEXT_BEST_ACTION",
+   "ms": 1502.5,
+   "tool_calls": [
+    "retrieve_policy"
+   ],
+   "note": "initial=['STEP_UP_AUTH', 'MONITOR_CARD', 'CREATE_CASE'] final=['STEP_UP_AUTH', 'MONITOR_CARD', 'CREATE_CASE']"
+  },
+  {
+   "step": 6,
+   "state": "EXPLANATION",
+   "ms": 0.8,
+   "tool_calls": [],
+   "note": ""
+  },
+  {
+   "step": 7,
+   "state": "CASE_WRITE",
+   "ms": 3714.1,
+   "tool_calls": [],
+   "note": ""
+  }
+ ],
+ "gateway": {
+  "tool_calls": 10,
+  "graph_queries_executed": 9,
+  "cache_hits": 10,
+  "tool_ms_total": 18999.0,
+  "tool_ms_max": 7376.8
+ }
+}

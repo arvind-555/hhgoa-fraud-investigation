@@ -1,0 +1,447 @@
+{
+ "case_id": "HHG-005",
+ "case": {
+  "status": "closed_legitimate",
+  "verdict": "legitimate",
+  "fraud_probability": null,
+  "probability_calibrated": false,
+  "probability_source": "unavailable",
+  "calibration": {
+   "method": "b3-v1",
+   "gates_failed": [
+    "G3",
+    "G4"
+   ]
+  },
+  "pattern": "none",
+  "pattern_description": "",
+  "affected_txn_ids": [],
+  "first_suspicious_txn_id": "",
+  "connected_card_ids": [],
+  "connected_device_profiles": [],
+  "exposure_usd": 0,
+  "evidence": [
+   {
+    "claim": "S05 Repeat victim: visible prior confirmed case on the card or customer",
+    "source": "graph",
+    "ref": "detect_fraud_patterns",
+    "simulated": false,
+    "entity_ids": [
+     "CC-2857",
+     "CC-2717",
+     "CC-2400"
+    ],
+    "evidence_id": "E1",
+    "rating": "LOW"
+   },
+   {
+    "claim": "S10 Online id_15 = New",
+    "source": "graph",
+    "ref": "detect_fraud_patterns",
+    "simulated": false,
+    "entity_ids": [],
+    "evidence_id": "E2",
+    "rating": "LOW"
+   },
+   {
+    "claim": "card C00915-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C00915-K2"
+    ],
+    "evidence_id": "E3",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C05245-K2 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C05245-K2"
+    ],
+    "evidence_id": "E4",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "card C12897-K1 shares an eligible device with this card (context)",
+    "source": "graph",
+    "ref": "find_connected_entities",
+    "simulated": false,
+    "entity_ids": [
+     "C12897-K1"
+    ],
+    "evidence_id": "E5",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "bank model alert band: medium (input, not a verdict)",
+    "source": "graph",
+    "ref": "get_transaction_context",
+    "simulated": false,
+    "entity_ids": [],
+    "evidence_id": "E6",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "1 visible cleared case(s) related to this card/customer (history, not proof)",
+    "source": "graph",
+    "ref": "find_prior_cases",
+    "simulated": false,
+    "entity_ids": [
+     "CC-2608"
+    ],
+    "evidence_id": "E7",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "10 similar closed case(s) retrieved by GraphRAG (2 linked to this card/customer/device, 8 textual precedents; 1 were confirmed fraud): memory and wording context, not proof",
+    "source": "graph",
+    "ref": "find_similar_cases",
+    "simulated": false,
+    "entity_ids": [
+     "CC-3077",
+     "CC-2608",
+     "CC-0098",
+     "CC-0483",
+     "CC-2238",
+     "CC-4589",
+     "CC-0009",
+     "CC-0010",
+     "CC-0015",
+     "CC-0017"
+    ],
+    "evidence_id": "E8",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "[SIMULATED] step-up authentication: passed",
+    "source": "customer",
+    "ref": "evidence_simulator",
+    "simulated": true,
+    "entity_ids": [],
+    "evidence_id": "E9",
+    "rating": "MEDIUM"
+   },
+   {
+    "claim": "policy text consulted (policy:R1): When: The case rests on a single signal (including a risk score alone) and the assessed fraud probability is below 0.70. Actions: VERIFY_WITH_CUSTOMER or STEP_U",
+    "source": "document",
+    "ref": "document:policy:R1",
+    "simulated": false,
+    "entity_ids": [],
+    "evidence_id": "E10",
+    "rating": "CONTEXT"
+   }
+  ],
+  "similar_prior_cases": [
+   "CC-3077",
+   "CC-2608",
+   "CC-0098",
+   "CC-0483",
+   "CC-2238",
+   "CC-4589",
+   "CC-0009",
+   "CC-0010",
+   "CC-0015",
+   "CC-0017"
+  ],
+  "summary": "Evidence strength: weak (only weak context signals (not independent proof); 1 independent source(s)); weak context only: S05 Repeat victim: visible prior confirmed case on the card or customer [E1]; S10 Online id_15 = New [E2]; simulated response (not real evidence): [SIMULATED] step-up authentication: passed [E9]. Investigation uncertainty: medium; not available or unresolved: customer response not available yet, no merchant field: policy R7 (recurring merchant) cannot be evaluated; evidence requested (step_up_auth), outcome: passed. Calibrated probability: not available, because the calibration procedure did not pass its validation gates on the available history (out-of-time validation failed for this evidence class; closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)), so no probability is stated. Recommended (not executed): ALLOW_TRANSACTION (auto, R1), MONITOR_CARD (auto, R1).",
+  "written_to_graph": true,
+  "graph_case_id": "CASE-HHG-005"
+ },
+ "evidence_requests": [
+  {
+   "type": "step_up_auth",
+   "asked_after_step": 9,
+   "assumed_response": "[SIMULATED] Step-up authentication passed.",
+   "simulated": true,
+   "request_id": "HHG-005:REQ1",
+   "outcome": "passed"
+  }
+ ],
+ "next_best_actions": {
+  "initial": [
+   {
+    "action": "STEP_UP_AUTH",
+    "route": "auto",
+    "reason": "R1: only weak/context signals or the model score; verify before any block",
+    "rules": [
+     "R1"
+    ],
+    "executed": false,
+    "requires_approval": false
+   },
+   {
+    "action": "MONITOR_CARD",
+    "route": "auto",
+    "reason": "watch the card while evidence is pending",
+    "rules": [
+     "R1"
+    ],
+    "executed": false,
+    "requires_approval": false
+   }
+  ],
+  "final": [
+   {
+    "action": "ALLOW_TRANSACTION",
+    "route": "auto",
+    "reason": "simulated step-up authentication passed and no validated evidence contradicts it",
+    "rules": [
+     "R1"
+    ],
+    "executed": false,
+    "requires_approval": false
+   },
+   {
+    "action": "MONITOR_CARD",
+    "route": "auto",
+    "reason": "watch the card after a passed step-up",
+    "rules": [
+     "R1"
+    ],
+    "executed": false,
+    "requires_approval": false
+   }
+  ],
+  "what_changed": "the passed response changed the recommendation"
+ },
+ "sar": {
+  "file": false,
+  "reason": "No report: policy section 3a requires fraud confirmed or strongly suspected AND (exposure above $1,000, a shared device/region cluster or another customer's fraud, or a coordinated/undocumented pattern); this case does not meet it (final actions: ALLOW_TRANSACTION, MONITOR_CARD).",
+  "narrative": "",
+  "subjects": [],
+  "total_amount_usd": 0,
+  "activity_dates": []
+ },
+ "graph_refs": {
+  "card_id": "C02923-K1",
+  "customer_id": "C02923",
+  "flagged_txn_id": "3523199",
+  "device_ids": [],
+  "connected_cards": {},
+  "similar_cases": [
+   {
+    "case_id": "CC-3077",
+    "match_reasons": [
+     "shared_device:D_132e6baa49"
+    ],
+    "method": "prior_cases_tool",
+    "score": 1.0
+   },
+   {
+    "case_id": "CC-2608",
+    "match_reasons": [
+     "shared_device:D_c27a9a5f58"
+    ],
+    "method": "prior_cases_tool",
+    "score": 1.0
+   },
+   {
+    "case_id": "CC-0098",
+    "match_reasons": [],
+    "method": "graphrag_bm25",
+    "score": 4.9549
+   },
+   {
+    "case_id": "CC-0483",
+    "match_reasons": [],
+    "method": "graphrag_bm25",
+    "score": 4.9549
+   },
+   {
+    "case_id": "CC-2238",
+    "match_reasons": [],
+    "method": "graphrag_bm25",
+    "score": 4.9549
+   },
+   {
+    "case_id": "CC-4589",
+    "match_reasons": [],
+    "method": "graphrag_bm25",
+    "score": 4.9549
+   },
+   {
+    "case_id": "CC-0009",
+    "match_reasons": [],
+    "method": "graphrag_bm25",
+    "score": 4.8898
+   },
+   {
+    "case_id": "CC-0010",
+    "match_reasons": [],
+    "method": "graphrag_bm25",
+    "score": 4.8898
+   },
+   {
+    "case_id": "CC-0015",
+    "match_reasons": [],
+    "method": "graphrag_bm25",
+    "score": 4.8898
+   },
+   {
+    "case_id": "CC-0017",
+    "match_reasons": [],
+    "method": "graphrag_bm25",
+    "score": 4.8898
+   }
+  ]
+ },
+ "exposure_scope": {
+  "own_card_txns": 1,
+  "other_card_txns": 0,
+  "other_cards_with_txns": [],
+  "cards_expanded": 0,
+  "cards_not_expanded": 0,
+  "historical_cards_outside_window": 0,
+  "incomplete_reasons": [],
+  "discovery_window_gap_s": 21600,
+  "window_days": 30,
+  "device_ids": [],
+  "rule": "none",
+  "complete": true,
+  "other_card_exposure_usd": 0
+ },
+ "simulated_evidence_ids": [
+  "E9"
+ ],
+ "uncertainty": {
+  "evidence_strength": "weak",
+  "independent_sources": 1,
+  "conflicts": [],
+  "missing": [
+   "customer response not available yet",
+   "no merchant field: policy R7 (recurring merchant) cannot be evaluated"
+  ],
+  "level": "medium",
+  "needs_more_evidence": true,
+  "calibrated_probability": {
+   "value": null,
+   "calibrated": false,
+   "source": "unavailable",
+   "method": "b3-v1",
+   "status": "unavailable_validation_gate_failed",
+   "gates_failed": [
+    "G3",
+    "G4"
+   ],
+   "gate_notes": [
+    "out-of-time validation failed for this evidence class",
+    "closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)"
+   ]
+  },
+  "reasons": [
+   "tier1-5 independent sources: 0",
+   "low-context sources: 2",
+   "model alert band: medium"
+  ]
+ },
+ "stop_reason": "simulated step-up passed; no shared-origin evidence contradicts it",
+ "recommendation_only": true,
+ "graph_write": {
+  "graph_case_id": "CASE-HHG-005",
+  "revision": 1,
+  "action": "unchanged",
+  "content_sha256": "c31e20bba5a293c1dad1cf90a0b74e9fe4b549b83043a7eb3d6225e865871f44",
+  "written_to_graph": true
+ },
+ "tool_calls": 10,
+ "agentic": {
+  "mode": "deterministic",
+  "fallback": null,
+  "fallback_used": false,
+  "forced_calls": [],
+  "request_decision": {
+   "policy_required": true,
+   "llm": null,
+   "final": true,
+   "source": "policy"
+  }
+ },
+ "tokens": 0,
+ "llm": {
+  "explanation": {
+   "used": false,
+   "reason": "template explainer"
+  },
+  "sar": {
+   "used": false,
+   "reason": "template narrative"
+  },
+  "tokens": 0,
+  "calls": 0
+ },
+ "latency_s": 13.71,
+ "trace": [
+  {
+   "step": 1,
+   "state": "INITIAL_INVESTIGATION",
+   "ms": 8989.2,
+   "tool_calls": [
+    "get_transaction_context",
+    "get_card_history",
+    "get_customer_history",
+    "find_shared_devices",
+    "find_prior_cases",
+    "detect_fraud_patterns",
+    "find_connected_entities",
+    "find_similar_cases",
+    "get_policy_context"
+   ],
+   "note": ""
+  },
+  {
+   "step": 2,
+   "state": "EVIDENCE_SYNTHESIS",
+   "ms": 0.2,
+   "tool_calls": [],
+   "note": ""
+  },
+  {
+   "step": 3,
+   "state": "UNCERTAINTY_ASSESSMENT",
+   "ms": 0.0,
+   "tool_calls": [],
+   "note": ""
+  },
+  {
+   "step": 4,
+   "state": "ADDITIONAL_EVIDENCE_REQUEST",
+   "ms": 0.0,
+   "tool_calls": [],
+   "note": "outcome=passed (simulated)"
+  },
+  {
+   "step": 5,
+   "state": "NEXT_BEST_ACTION",
+   "ms": 1079.8,
+   "tool_calls": [
+    "retrieve_policy"
+   ],
+   "note": "initial=['STEP_UP_AUTH', 'MONITOR_CARD'] final=['ALLOW_TRANSACTION', 'MONITOR_CARD']"
+  },
+  {
+   "step": 6,
+   "state": "EXPLANATION",
+   "ms": 0.3,
+   "tool_calls": [],
+   "note": ""
+  },
+  {
+   "step": 7,
+   "state": "CASE_WRITE",
+   "ms": 3638.9,
+   "tool_calls": [],
+   "note": ""
+  }
+ ],
+ "gateway": {
+  "tool_calls": 10,
+  "graph_queries_executed": 9,
+  "cache_hits": 10,
+  "tool_ms_total": 16876.0,
+  "tool_ms_max": 6763.2
+ }
+}
