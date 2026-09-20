@@ -1,0 +1,62 @@
+// fi_prior_cases — closed cases VISIBLE at `as_of` that relate to the card: same card, same customer, or an ELIGIBLE shared device.
+// Visibility: close_epoch <= as_of ONLY (never opened_at). Shared-device path: device snapshot class not NULL/HUB and AS-OF customer degree
+// <= max_degree (default 20 = the last tier with validated sharing evidence); the card's own customer is excluded from that path.
+// Case history is memory/context, not proof (docs/signal_validation.md S05, S18). Returns related transactions and devices of each case.
+CREATE OR REPLACE QUERY fi_prior_cases(VERTEX<Card> card, INT as_of, INT max_cases, INT max_degree) FOR GRAPH FraudInvestigation {
+  SetAccum<STRING> @reasons;
+  SetAccum<STRING> @custs;
+  SumAccum<INT> @ncust;
+  SetAccum<STRING> @devs;
+  SetAccum<STRING> @cases;
+  MaxAccum<INT> @@max_epoch;
+  SumAccum<STRING> @@own_cust;
+  SumAccum<INT> @@n_visible;
+  MapAccum<STRING, ListAccum<INT>> @@case_txns;
+  MapAccum<STRING, SetAccum<STRING>> @@case_devices;
+  MapAccum<STRING, MaxAccum<INT>> @@eligible_degree;
+
+  S = {card};
+  Me = SELECT c FROM S:c ACCUM @@own_cust += c.customer_id;
+
+  C1 = SELECT k FROM S:c -(CARD_HAS_CLOSED)-> ClosedCase:k
+       WHERE k.close_epoch <= as_of
+       ACCUM k.@reasons += "same_card", @@max_epoch += k.close_epoch;
+
+  Cu = SELECT u FROM S:c -(OWNED_BY)-> Customer:u;
+  C2 = SELECT k FROM Cu:u -(CUSTOMER_HAS_CLOSED)-> ClosedCase:k
+       WHERE k.close_epoch <= as_of
+       ACCUM k.@reasons += "same_customer", @@max_epoch += k.close_epoch;
+
+  Txs = SELECT t FROM S:c -(MADE:e)-> Transaction:t WHERE e.epoch <= as_of;
+  Dv = SELECT d FROM Txs:t -(FROM_DEVICE:fe)-> DeviceProfile:d
+       WHERE fe.epoch <= as_of AND d.snap_class != "NULL" AND d.snap_class != "HUB";
+  Stat = SELECT d FROM Dv:d -(DEVICE_OF:e)-> Transaction:t
+         WHERE e.epoch <= as_of
+         ACCUM d.@custs += e.customer_id
+         POST-ACCUM d.@ncust = d.@custs.size();
+  Elig = SELECT d FROM Stat:d WHERE d.@ncust <= max_degree
+         ACCUM @@eligible_degree += (d.device_id -> d.@ncust);
+  Ot = SELECT t FROM Elig:d -(DEVICE_OF:e)-> Transaction:t
+       WHERE e.epoch <= as_of AND e.customer_id != @@own_cust
+       ACCUM t.@devs += d.device_id;
+  C3 = SELECT k FROM Ot:t -(INVOLVED_IN_CLOSED)-> ClosedCase:k
+       WHERE k.close_epoch <= as_of
+       ACCUM FOREACH dv IN t.@devs DO k.@reasons += ("shared_device:" + dv) END,
+             @@max_epoch += k.close_epoch;
+
+  Allk = C1 UNION C2 UNION C3;
+  Cnt = SELECT k FROM Allk:k ACCUM @@n_visible += 1;
+  Top = SELECT k FROM Allk:k ORDER BY k.close_epoch DESC LIMIT max_cases;
+
+  Inv = SELECT t FROM Top:k -(CLOSED_INVOLVES:e)-> Transaction:t
+        WHERE t.epoch <= as_of
+        ACCUM t.@cases += k.case_id, @@case_txns += (k.case_id -> t.txn_id), @@max_epoch += t.epoch;
+  CDv = SELECT d FROM Inv:t -(FROM_DEVICE:fe)-> DeviceProfile:d
+        WHERE fe.epoch <= as_of
+        ACCUM FOREACH cid IN t.@cases DO @@case_devices += (cid -> d.device_id) END;
+
+  PRINT @@max_epoch AS max_epoch_seen, @@n_visible AS n_related_visible, @@own_cust AS own_customer, @@eligible_degree AS eligible_device_degree;
+  PRINT Top[Top.case_id, Top.customer_id, Top.card_id, Top.open_epoch, Top.close_epoch, Top.outcome, Top.pattern, Top.n_txns, Top.exposure_usd,
+            Top.report_filed, Top.actions_taken, Top.first_fraud_txn_id, Top.device_text, Top.analyst_notes, Top.@reasons AS match_reasons];
+  PRINT @@case_txns AS case_txns, @@case_devices AS case_devices;
+}

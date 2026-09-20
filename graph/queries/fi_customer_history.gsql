@@ -1,0 +1,53 @@
+// fi_customer_history — a customer's cards, spend profile and VISIBLE closed cases, as of `as_of`.
+// Visibility: cards with first_epoch <= as_of; transactions e.epoch <= as_of (within lookback_s); closed cases close_epoch <= as_of (NEVER open_epoch).
+// The number of cases hidden by the as-of rule is deliberately not computed or returned.
+CREATE OR REPLACE QUERY fi_customer_history(VERTEX<Customer> cust, INT as_of, INT lookback_s, INT max_cases) FOR GRAPH FraudInvestigation {
+  SumAccum<INT> @n;
+  SumAccum<DOUBLE> @sum_amt;
+  MaxAccum<DOUBLE> @max_amt;
+  MinAccum<INT> @first_ep;
+  MaxAccum<INT> @last_ep;
+  SumAccum<INT> @@n_total;
+  SumAccum<DOUBLE> @@sum_amt;
+  MaxAccum<INT> @@max_epoch;
+  MinAccum<INT> @@first_ep;
+  MaxAccum<INT> @@last_ep;
+  SumAccum<INT> @@n_cases;
+  SumAccum<INT> @@n_confirmed;
+  SumAccum<INT> @@n_cleared;
+  MapAccum<STRING, SumAccum<INT>> @@prod;
+  MapAccum<STRING, SumAccum<INT>> @@chan;
+  SetAccum<STRING> @@devices;
+
+  S = {cust};
+  Cd = SELECT c FROM S:u -(OWNS)-> Card:c WHERE c.first_epoch <= as_of;
+
+  Tx = SELECT t FROM Cd:c -(MADE:e)-> Transaction:t
+       WHERE e.epoch <= as_of AND e.epoch >= as_of - lookback_s
+       ACCUM c.@n += 1, c.@sum_amt += t.amount, c.@max_amt += t.amount, c.@first_ep += e.epoch, c.@last_ep += e.epoch,
+             @@n_total += 1, @@sum_amt += t.amount, @@max_epoch += e.epoch, @@first_ep += e.epoch, @@last_ep += e.epoch,
+             @@prod += (t.product_cd -> 1), @@chan += (t.channel -> 1);
+
+  Dv = SELECT d FROM Tx:t -(FROM_DEVICE:fe)-> DeviceProfile:d
+       WHERE fe.epoch <= as_of
+       ACCUM @@devices += d.device_id;
+
+  Cs0 = SELECT k FROM S:u -(CUSTOMER_HAS_CLOSED)-> ClosedCase:k
+        WHERE k.close_epoch <= as_of
+        ACCUM @@n_cases += 1,
+              CASE WHEN k.outcome == "confirmed_fraud" THEN @@n_confirmed += 1 END,
+              CASE WHEN k.outcome == "cleared" THEN @@n_cleared += 1 END,
+              @@max_epoch += k.close_epoch;
+  Cs = SELECT k FROM S:u -(CUSTOMER_HAS_CLOSED)-> ClosedCase:k
+       WHERE k.close_epoch <= as_of
+       ORDER BY k.close_epoch DESC
+       LIMIT max_cases;
+
+  PRINT @@n_total AS n_txns, @@sum_amt AS sum_amt, @@first_ep AS first_epoch, @@last_ep AS last_epoch, @@max_epoch AS max_epoch_seen,
+        @@n_cases AS n_cases_visible, @@n_confirmed AS n_confirmed_visible, @@n_cleared AS n_cleared_visible,
+        @@prod AS product_hist, @@chan AS channel_hist, @@devices.size() AS n_devices;
+  PRINT Cd[Cd.card_id, Cd.card4, Cd.card6, Cd.is_null_type, Cd.first_epoch, Cd.@n AS n_txns, Cd.@sum_amt AS sum_amt, Cd.@max_amt AS max_amt,
+           Cd.@first_ep AS first_txn_epoch, Cd.@last_ep AS last_txn_epoch];
+  PRINT Cs[Cs.case_id, Cs.card_id, Cs.open_epoch, Cs.close_epoch, Cs.outcome, Cs.pattern, Cs.n_txns, Cs.exposure_usd, Cs.report_filed,
+           Cs.actions_taken, Cs.first_fraud_txn_id, Cs.device_text, Cs.analyst_notes];
+}

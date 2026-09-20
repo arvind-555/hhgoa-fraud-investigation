@@ -1,0 +1,79 @@
+# ---- Data (the hackathon CSVs are large and must never be committed) ----
+*.csv
+HHGOA_IEEE/*.csv
+*.csv.gz
+*.parquet
+*.pkl
+*.feather
+data/staged/
+data/raw/
+
+# ---- Generated caches / analysis outputs ----
+scripts/analysis/.cache/
+scripts/analysis/output/
+scripts/analysis/*.log
+.cache/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+*.log
+
+# ---- Environments ----
+.venv/
+venv/
+env/
+node_modules/
+
+# ---- Secrets / credentials (never commit) ----
+.env
+.env.*
+!.env.example
+*.env
+!*.example.env
+credentials*
+*credentials*.json
+*.pem
+*.key
+*.p12
+secrets/
+*secret*
+!*.secret.example
+tg_*.json
+tigergraph*.local.*
+config/*.local.*
+config/secrets*
+config/*.token
+.mcp.local.json
+
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+data/runs/
+
+# ---- Downloaded packages / build artefacts (pip download leftovers, wheels, archives) ----
+*.whl
+*.egg-info/
+dist/
+build/
+*.zip
+*.tar.gz
+
+# ---- Everything generated at run time lives under data/ (staged CSVs, run outputs, logs, LLM response caches, benchmark outputs, marker files) ----
+data/
+**/llm_cache*/
+**/scripted_cache/
+
+# ---- Temporary files ----
+*.tmp
+*.bak
+*.swp
+nohup.out
+tmp/
+.claude/
+.claude.json*

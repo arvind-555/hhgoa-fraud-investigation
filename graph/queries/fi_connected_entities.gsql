@@ -1,0 +1,76 @@
+// fi_connected_entities — bounded expansion through RARE recipient/purchaser email domains and LOW-degree billing regions the card touched
+// (devices are handled by fi_shared_devices). Returns other cards/customers reached through those entities within `days`.
+//
+// Hub guard (spec §5.1): email domains with snapshot class GENERIC and regions with class MEGA/HUB are never expanded; for the rest the AS-OF
+// distinct-customer count (two-step pre-count) must be <= max_degree (default 20) or the entity is skipped and reported.
+// Temporal rules: every edge e.epoch <= as_of; neighbour window e.epoch >= as_of - days*86400. No labels are read here.
+// Email/region links are LOW evidence (docs/signal_validation.md S03/S04): the wrapper reports them as connections, not as signals.
+CREATE OR REPLACE QUERY fi_connected_entities(VERTEX<Card> card, INT as_of, INT days, INT max_degree) FOR GRAPH FraudInvestigation {
+  SetAccum<STRING> @r_custs;
+  SetAccum<STRING> @p_custs;
+  SetAccum<STRING> @g_custs;
+  SumAccum<INT> @r_n;
+  SumAccum<INT> @p_n;
+  SumAccum<INT> @g_n;
+  SumAccum<INT> @own_txns;
+  MaxAccum<INT> @@max_epoch;
+  SumAccum<STRING> @@own_cust;
+  MapAccum<STRING, MaxAccum<STRING>> @@skipped_reason;
+  MapAccum<STRING, MaxAccum<INT>> @@skipped_degree;
+  GroupByAccum<STRING kind, STRING ent, STRING nb_card, STRING nb_cust, SumAccum<INT> n, MinAccum<INT> first_ep, MaxAccum<INT> last_ep> @@nb;
+
+  S = {card};
+  Me = SELECT c FROM S:c ACCUM @@own_cust += c.customer_id;
+  Txs = SELECT t FROM S:c -(MADE:e)-> Transaction:t WHERE e.epoch <= as_of ACCUM @@max_epoch += e.epoch;
+
+  // ---------------- recipient email domains
+  RE = SELECT m FROM Txs:t -(RECIPIENT_EMAIL:e)-> EmailDomain:m WHERE e.epoch <= as_of ACCUM m.@own_txns += 1;
+  REb = SELECT m FROM RE:m WHERE m.snap_class == "GENERIC"
+        ACCUM @@skipped_reason += ("recipient_email:" + m.domain -> "snapshot_class_GENERIC");
+  REc = RE MINUS REb;
+  RES = SELECT m FROM REc:m -(RECIPIENT_OF:e)-> Transaction:t WHERE e.epoch <= as_of
+        ACCUM m.@r_custs += t.customer_id, @@max_epoch += e.epoch
+        POST-ACCUM m.@r_n = m.@r_custs.size();
+  REx = SELECT m FROM RES:m WHERE m.@r_n > max_degree
+        ACCUM @@skipped_reason += ("recipient_email:" + m.domain -> "asof_degree_over_max"), @@skipped_degree += ("recipient_email:" + m.domain -> m.@r_n);
+  REe = RES MINUS REx;
+  REn = SELECT t FROM REe:m -(RECIPIENT_OF:e)-> Transaction:t
+        WHERE e.epoch <= as_of AND e.epoch >= as_of - days * 86400 AND t.customer_id != @@own_cust
+        ACCUM @@nb += ("recipient_email", m.domain, t.card_id, t.customer_id -> 1, e.epoch, e.epoch);
+
+  // ---------------- purchaser email domains
+  PE = SELECT m FROM Txs:t -(PURCHASER_EMAIL:e)-> EmailDomain:m WHERE e.epoch <= as_of ACCUM m.@own_txns += 1;
+  PEb = SELECT m FROM PE:m WHERE m.snap_class == "GENERIC"
+        ACCUM @@skipped_reason += ("purchaser_email:" + m.domain -> "snapshot_class_GENERIC");
+  PEc = PE MINUS PEb;
+  PES = SELECT m FROM PEc:m -(PURCHASER_OF:e)-> Transaction:t WHERE e.epoch <= as_of
+        ACCUM m.@p_custs += t.customer_id, @@max_epoch += e.epoch
+        POST-ACCUM m.@p_n = m.@p_custs.size();
+  PEx = SELECT m FROM PES:m WHERE m.@p_n > max_degree
+        ACCUM @@skipped_reason += ("purchaser_email:" + m.domain -> "asof_degree_over_max"), @@skipped_degree += ("purchaser_email:" + m.domain -> m.@p_n);
+  PEe = PES MINUS PEx;
+  PEn = SELECT t FROM PEe:m -(PURCHASER_OF:e)-> Transaction:t
+        WHERE e.epoch <= as_of AND e.epoch >= as_of - days * 86400 AND t.customer_id != @@own_cust
+        ACCUM @@nb += ("purchaser_email", m.domain, t.card_id, t.customer_id -> 1, e.epoch, e.epoch);
+
+  // ---------------- billing regions
+  BR = SELECT b FROM Txs:t -(BILLED_IN:e)-> BillingRegion:b WHERE e.epoch <= as_of ACCUM b.@own_txns += 1;
+  BRb = SELECT b FROM BR:b WHERE b.snap_class == "MEGA" OR b.snap_class == "HUB"
+        ACCUM @@skipped_reason += ("region:" + to_string(b.addr1) -> "snapshot_class_" + b.snap_class);
+  BRc = BR MINUS BRb;
+  BRS = SELECT b FROM BRc:b -(BILLED_HERE:e)-> Transaction:t WHERE e.epoch <= as_of
+        ACCUM b.@g_custs += t.customer_id, @@max_epoch += e.epoch
+        POST-ACCUM b.@g_n = b.@g_custs.size();
+  BRx = SELECT b FROM BRS:b WHERE b.@g_n > max_degree
+        ACCUM @@skipped_reason += ("region:" + to_string(b.addr1) -> "asof_degree_over_max"), @@skipped_degree += ("region:" + to_string(b.addr1) -> b.@g_n);
+  BRe = BRS MINUS BRx;
+  BRn = SELECT t FROM BRe:b -(BILLED_HERE:e)-> Transaction:t
+        WHERE e.epoch <= as_of AND e.epoch >= as_of - days * 86400 AND t.customer_id != @@own_cust
+        ACCUM @@nb += ("region", to_string(b.addr1), t.card_id, t.customer_id -> 1, e.epoch, e.epoch);
+
+  PRINT @@max_epoch AS max_epoch_seen, @@own_cust AS own_customer, @@skipped_reason AS skipped_reason, @@skipped_degree AS skipped_degree;
+  PRINT RE[RE.domain, RE.snap_class, RE.snap_customers, RE.@own_txns AS own_txns, RE.@r_n AS asof_customers];
+  PRINT PE[PE.domain, PE.snap_class, PE.snap_customers, PE.@own_txns AS own_txns, PE.@p_n AS asof_customers];
+  PRINT BR[BR.addr1, BR.country, BR.snap_class, BR.snap_customers, BR.@own_txns AS own_txns, BR.@g_n AS asof_customers];
+  PRINT @@nb AS neighbours;
+}

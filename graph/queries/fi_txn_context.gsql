@@ -1,0 +1,42 @@
+// fi_txn_context — transaction + card/customer/device/email/region + temporal neighbours, as of `as_of`.
+// Contract: docs/investigation_tools.md.  v1 syntax.  READ-ONLY.  Numeric sentinels (E18) are returned raw; the Python wrapper maps them to null.
+// Visibility: the transaction must satisfy epoch <= as_of, every traversed edge must satisfy e.epoch <= as_of, the NEXT neighbour must satisfy epoch <= as_of.
+CREATE OR REPLACE QUERY fi_txn_context(VERTEX<Transaction> txn, INT as_of) FOR GRAPH FraudInvestigation {
+  SumAccum<INT> @@visible;
+  MaxAccum<INT> @@max_epoch;
+  MapAccum<INT, MaxAccum<INT>> @@prev_gap;
+  MapAccum<INT, MaxAccum<INT>> @@next_gap;
+
+  Seed = {txn};
+  V = SELECT t FROM Seed:t
+      WHERE t.epoch <= as_of
+      ACCUM @@visible += 1, @@max_epoch += t.epoch;
+
+  C  = SELECT c FROM V:t -(MADE_BY:e)-> Card:c WHERE e.epoch <= as_of;
+  U  = SELECT u FROM C:c -(OWNED_BY)-> Customer:u;
+  D  = SELECT d FROM V:t -(FROM_DEVICE:e)-> DeviceProfile:d WHERE e.epoch <= as_of;
+  PE = SELECT m FROM V:t -(PURCHASER_EMAIL:e)-> EmailDomain:m WHERE e.epoch <= as_of;
+  RE = SELECT m FROM V:t -(RECIPIENT_EMAIL:e)-> EmailDomain:m WHERE e.epoch <= as_of;
+  BR = SELECT b FROM V:t -(BILLED_IN:e)-> BillingRegion:b WHERE e.epoch <= as_of;
+  PV = SELECT p FROM V:t -(PREV:e)-> Transaction:p
+       WHERE p.epoch <= as_of
+       ACCUM @@prev_gap += (p.txn_id -> e.gap_s), @@max_epoch += p.epoch;
+  NX = SELECT n FROM V:t -(NEXT:e)-> Transaction:n
+       WHERE n.epoch <= as_of
+       ACCUM @@next_gap += (n.txn_id -> e.gap_s), @@max_epoch += n.epoch;
+
+  PRINT @@visible AS visible, @@max_epoch AS max_epoch_seen, @@prev_gap AS prev_gap, @@next_gap AS next_gap;
+  PRINT V[V.txn_id, V.epoch, V.ts, V.amount, V.product_cd, V.channel, V.risk_score, V.card_id, V.customer_id, V.addr1, V.addr2,
+          V.dist1, V.dist2, V.has_identity, V.id_15, V.proxy_type, V.device_type, V.p_email, V.r_email,
+          V.c1, V.c2, V.c4, V.c8, V.c10, V.d1, V.d2, V.d3, V.d4, V.d5, V.d10, V.d15,
+          V.m1, V.m2, V.m3, V.m4, V.m5, V.m6, V.m7, V.m8, V.m9,
+          V.v51, V.v52, V.v79, V.v93, V.v94, V.v217, V.v258, V.v264, V.v308];
+  PRINT C[C.card_id, C.customer_id, C.card_k, C.card4, C.card6, C.card2, C.card3, C.card5, C.is_null_type, C.first_epoch];
+  PRINT U[U.customer_id, U.card1, U.n_cards, U.first_epoch];
+  PRINT D[D.device_id, D.profile_str, D.device_info, D.os, D.browser, D.screen, D.n_known, D.is_null_profile, D.first_epoch, D.snap_customers, D.snap_class];
+  PRINT PE[PE.domain, PE.is_anonymizer, PE.snap_customers, PE.snap_class];
+  PRINT RE[RE.domain, RE.is_anonymizer, RE.snap_customers, RE.snap_class];
+  PRINT BR[BR.addr1, BR.country, BR.snap_customers, BR.snap_class];
+  PRINT PV[PV.txn_id, PV.epoch, PV.amount, PV.product_cd, PV.channel];
+  PRINT NX[NX.txn_id, NX.epoch, NX.amount, NX.product_cd, NX.channel];
+}

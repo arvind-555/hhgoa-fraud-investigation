@@ -1,0 +1,72 @@
+// fi_card_history — recent transactions of a card + baseline accumulators, as of `as_of`.
+//   rows      : transactions with as_of - row_window_s <= epoch <= as_of, newest first, at most max_rows (risk_score deliberately NOT returned)
+//   baseline  : transactions with before_epoch - baseline_lookback_s <= epoch < before_epoch (and <= as_of) — strictly BEFORE the flagged transaction, so a
+//               transaction is never part of its own baseline (matches the point-in-time definition validated in scripts/analysis/signals.py)
+// The Python wrapper computes z-scores / modal region from the accumulators (n, sum_la, sum_la2, histograms).
+// Sentinels (E18): addr1 = -1 means missing and is excluded from the region histograms here; other returned numerics are never sentinels except addr2/dist (raw).
+CREATE OR REPLACE QUERY fi_card_history(VERTEX<Card> card, INT as_of, INT before_epoch, INT baseline_lookback_s, INT row_window_s, INT max_rows) FOR GRAPH FraudInvestigation {
+  SumAccum<INT> @@n_total;
+  SumAccum<INT> @@n_window;
+  SumAccum<INT> @@n_base;
+  SumAccum<DOUBLE> @@sum_amt;
+  SumAccum<DOUBLE> @@sum_la;
+  SumAccum<DOUBLE> @@sum_la2;
+  MinAccum<DOUBLE> @@min_amt;
+  MaxAccum<DOUBLE> @@max_amt;
+  MinAccum<INT> @@first_ep;
+  MaxAccum<INT> @@last_ep;
+  MaxAccum<INT> @@max_epoch;
+  MapAccum<STRING, SumAccum<INT>> @@prod;
+  MapAccum<STRING, SumAccum<INT>> @@chan;
+  MapAccum<INT, SumAccum<INT>> @@hour;
+  MapAccum<INT, SumAccum<INT>> @@region;
+  MapAccum<INT, SumAccum<INT>> @@ip_region;
+  MapAccum<STRING, MinAccum<INT>> @@dev_first;
+  MapAccum<INT, MaxAccum<STRING>> @@row_dev;
+
+  S = {card};
+
+  All = SELECT t FROM S:c -(MADE:e)-> Transaction:t
+        WHERE e.epoch <= as_of
+        ACCUM @@n_total += 1, @@max_epoch += e.epoch;
+
+  Base = SELECT t FROM S:c -(MADE:e)-> Transaction:t
+         WHERE e.epoch < before_epoch AND e.epoch <= as_of AND e.epoch >= before_epoch - baseline_lookback_s
+         ACCUM @@n_base += 1,
+               @@sum_amt += t.amount,
+               @@sum_la += log(1 + t.amount),
+               @@sum_la2 += log(1 + t.amount) * log(1 + t.amount),
+               @@min_amt += t.amount,
+               @@max_amt += t.amount,
+               @@first_ep += e.epoch,
+               @@last_ep += e.epoch,
+               @@prod += (t.product_cd -> 1),
+               @@chan += (t.channel -> 1),
+               @@hour += ((e.epoch % 86400) / 3600 -> 1),
+               CASE WHEN t.addr1 != -1 THEN @@region += (t.addr1 -> 1) END,
+               CASE WHEN t.addr1 != -1 AND t.channel == "in_person" THEN @@ip_region += (t.addr1 -> 1) END;
+
+  BD = SELECT d FROM Base:t -(FROM_DEVICE:fe)-> DeviceProfile:d
+       WHERE fe.epoch < before_epoch AND fe.epoch <= as_of
+       ACCUM @@dev_first += (d.device_id -> fe.epoch);
+
+  W = SELECT t FROM S:c -(MADE:e)-> Transaction:t
+      WHERE e.epoch <= as_of AND e.epoch >= as_of - row_window_s
+      ACCUM @@n_window += 1;
+
+  R = SELECT t FROM S:c -(MADE:e)-> Transaction:t
+      WHERE e.epoch <= as_of AND e.epoch >= as_of - row_window_s
+      ORDER BY t.epoch DESC, t.txn_id DESC
+      LIMIT max_rows;
+
+  RD = SELECT t FROM R:t -(FROM_DEVICE:fe)-> DeviceProfile:d
+       WHERE fe.epoch <= as_of
+       ACCUM @@row_dev += (t.txn_id -> d.device_id);
+
+  PRINT @@n_total AS n_total, @@n_window AS n_window, @@n_base AS n_base, @@max_epoch AS max_epoch_seen,
+        @@sum_amt AS sum_amt, @@sum_la AS sum_la, @@sum_la2 AS sum_la2, @@min_amt AS min_amt, @@max_amt AS max_amt,
+        @@first_ep AS first_epoch, @@last_ep AS last_epoch;
+  PRINT @@prod AS product_hist, @@chan AS channel_hist, @@hour AS hour_hist, @@region AS region_hist, @@ip_region AS in_person_region_hist,
+        @@dev_first AS device_first_seen, @@row_dev AS row_device;
+  PRINT R[R.txn_id, R.epoch, R.amount, R.product_cd, R.channel, R.addr1, R.addr2, R.has_identity, R.id_15, R.proxy_type, R.device_type, R.p_email, R.r_email];
+}

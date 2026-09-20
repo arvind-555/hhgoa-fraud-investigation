@@ -1,0 +1,61 @@
+{
+ "buckets": {
+  "moderate": {
+   "calibrated_ok": false,
+   "identified_for_alerts": false,
+   "p_closed_case_population": 0.9291,
+   "reasons": [
+    "G3 reliability: training estimate 0.885 outside the out-of-time Wilson interval [0.921, 0.991]",
+    "G4 identification: P(fraud|alert) only bounded to [0.426, 0.979] (width 0.552 > 0.2); 438 of 793 alert transactions in this bucket are unlabeled"
+   ],
+   "validated_in_population": false
+  },
+  "none": {
+   "calibrated_ok": false,
+   "identified_for_alerts": false,
+   "p_closed_case_population": 0.9416,
+   "reasons": [
+    "G4 identification: P(fraud|alert) only bounded to [0.393, 0.976] (width 0.583 > 0.2); 1215 of 2084 alert transactions in this bucket are unlabeled"
+   ],
+   "validated_in_population": true
+  },
+  "strong": {
+   "calibrated_ok": false,
+   "identified_for_alerts": false,
+   "p_closed_case_population": 0.9708,
+   "reasons": [
+    "G2 support: train n=45 (<50) or test n=30 (<30)",
+    "G4 identification: P(fraud|alert) only bounded to [0.791, 0.994] (width 0.203 > 0.2); 35 of 172 alert transactions in this bucket are unlabeled"
+   ],
+   "validated_in_population": false
+  },
+  "weak": {
+   "calibrated_ok": false,
+   "identified_for_alerts": false,
+   "p_closed_case_population": 0.8028,
+   "reasons": [
+    "G3 reliability: training estimate 0.749 outside the out-of-time Wilson interval [0.864, 0.896]",
+    "G4 identification: P(fraud|alert) only bounded to [0.189, 0.969] (width 0.780 > 0.2); 21016 of 26936 alert transactions in this bucket are unlabeled"
+   ],
+   "validated_in_population": false
+  }
+ },
+ "gates": {
+  "alert_min_risk": 0.5,
+  "max_bound_width": 0.2,
+  "min_test": 30,
+  "min_train": 50
+ },
+ "inputs_sha256": {
+  "closed_cases_history.csv": "840613948d023fc3ddbfcb3291d5be250ee328e6eba1d2810b010fca5a757854"
+ },
+ "label_horizon_epoch": 10540800,
+ "method": "empirical-Bayes bucket rates by evidence strength; out-of-time validation; Manski identification gate",
+ "notes": [
+  "S01 ring has no labelled history (first ring transaction is after the horizon): strong evidence from S01 is uncalibrated by construction",
+  "risk_score is not a feature; alert population uses it only to define which transactions count as alerts for gate G4"
+ ],
+ "shrink": 10.0,
+ "train_cut_epoch": 6480000,
+ "version": "b3-v1"
+}

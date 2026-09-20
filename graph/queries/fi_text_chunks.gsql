@@ -1,0 +1,21 @@
+// fi_text_chunks — GraphRAG text half: TextChunk vertices VISIBLE at `as_of` (valid_from_epoch <= as_of) of one doc_type, optionally one channel.
+// closed_case chunks have valid_from_epoch = the case's close_epoch, and are traversed DESCRIBES -> ClosedCase so the result carries the case id and close_epoch;
+// visibility is by close time only (never opened_at). Policy/pattern/format chunks have valid_from_epoch = 0. No risk_score, no labels beyond the closed-case outcome text.
+// The Python retriever ranks these chunks (BM25); vector search is not used (embedding model undecided).
+CREATE OR REPLACE QUERY fi_text_chunks(INT as_of, STRING doc_type, STRING channel, INT max_chunks) FOR GRAPH FraudInvestigation {
+  MaxAccum<INT> @@max_epoch;
+  SumAccum<STRING> @case_id;
+  SumAccum<INT> @close_ep;
+
+  S = SELECT c FROM TextChunk:c
+      WHERE c.valid_from_epoch <= as_of AND c.doc_type == doc_type AND (channel == "" OR c.channel == channel)
+      ACCUM @@max_epoch += c.valid_from_epoch
+      LIMIT max_chunks;
+
+  D = SELECT k FROM S:c -(DESCRIBES:e)-> ClosedCase:k
+      WHERE k.close_epoch <= as_of
+      ACCUM c.@case_id += k.case_id, c.@close_ep += k.close_epoch, @@max_epoch += k.close_epoch;
+
+  PRINT @@max_epoch AS max_epoch_seen;
+  PRINT S[S.chunk_id, S.doc_type, S.source_ref, S.text, S.valid_from_epoch, S.pattern, S.outcome, S.channel, S.@case_id AS case_id, S.@close_ep AS close_ep];
+}

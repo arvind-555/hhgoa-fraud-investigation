@@ -1,0 +1,83 @@
+// fi_shared_devices — every device profile the card used up to `as_of`, with AS-OF sharing statistics, hub gating and other customers/cards.
+//
+// Hub guard (spec §5): devices with snapshot class NULL or HUB are never expanded; for the rest the AS-OF distinct-customer count is computed
+// (two-step pre-count) and a device whose count exceeds max_customers is skipped and reported in `skipped`. Only the remaining devices are used to
+// list neighbours and visible fraud. Snapshot fields are a pre-filter only, never evidence.
+// Temporal rules: card txns, FROM_DEVICE/DEVICE_OF edges e.epoch <= as_of; neighbours additionally e.epoch >= as_of - days*86400;
+// fraud counts use closed cases with close_epoch <= as_of and outcome confirmed_fraud, and EXCLUDE the card's own customer.
+// The Python wrapper derives sharing tier (<=5 strong, 6-20 moderate, >20 none) and ring_suspect (customers>=3, new_share>=0.9, proxy_share>=0.5).
+CREATE OR REPLACE QUERY fi_shared_devices(VERTEX<Card> card, INT as_of, INT days, INT max_customers) FOR GRAPH FraudInvestigation {
+  SumAccum<INT> @own_txns;
+  MinAccum<INT> @own_first;
+  MaxAccum<INT> @own_last;
+  SetAccum<STRING> @custs;
+  SumAccum<INT> @ncust;
+  SumAccum<INT> @txns;
+  SumAccum<INT> @new_txns;
+  SumAccum<INT> @proxy_txns;
+  MinAccum<INT> @first_ep;
+  MaxAccum<INT> @last_ep;
+  SetAccum<STRING> @devs;
+  MaxAccum<INT> @@max_epoch;
+  SumAccum<STRING> @@own_cust;
+  MapAccum<STRING, MaxAccum<STRING>> @@skipped_reason;
+  MapAccum<STRING, MaxAccum<INT>> @@skipped_degree;
+  MapAccum<STRING, SetAccum<STRING>> @@fraud_cust;
+  MapAccum<STRING, SetAccum<STRING>> @@fraud_cases;
+  GroupByAccum<STRING dev, STRING nb_card, STRING nb_cust, SumAccum<INT> n, MinAccum<INT> first_ep, MaxAccum<INT> last_ep> @@nb;
+
+  S = {card};
+  Me = SELECT c FROM S:c ACCUM @@own_cust += c.customer_id;
+
+  Txs = SELECT t FROM S:c -(MADE:e)-> Transaction:t
+        WHERE e.epoch <= as_of
+        ACCUM @@max_epoch += e.epoch;
+
+  Dv = SELECT d FROM Txs:t -(FROM_DEVICE:fe)-> DeviceProfile:d
+       WHERE fe.epoch <= as_of
+       ACCUM d.@own_txns += 1, d.@own_first += fe.epoch, d.@own_last += fe.epoch, @@max_epoch += fe.epoch;
+
+  Blk = SELECT d FROM Dv:d
+        WHERE d.snap_class == "NULL" OR d.snap_class == "HUB"
+        ACCUM @@skipped_reason += (d.device_id -> "snapshot_class_" + d.snap_class);
+
+  Cand = Dv MINUS Blk;
+
+  Stat = SELECT d FROM Cand:d -(DEVICE_OF:e)-> Transaction:t
+         WHERE e.epoch <= as_of
+         ACCUM d.@txns += 1, d.@custs += e.customer_id,
+               CASE WHEN e.id_15 == "New" THEN d.@new_txns += 1 END,
+               CASE WHEN e.proxy_type != "" THEN d.@proxy_txns += 1 END,
+               d.@first_ep += e.epoch, d.@last_ep += e.epoch, @@max_epoch += e.epoch
+         POST-ACCUM d.@ncust = d.@custs.size();
+
+  Big = SELECT d FROM Stat:d
+        WHERE d.@ncust > max_customers
+        ACCUM @@skipped_reason += (d.device_id -> "asof_degree_over_max"), @@skipped_degree += (d.device_id -> d.@ncust);
+
+  Elig = Stat MINUS Big;
+
+  Nbt = SELECT t FROM Elig:d -(DEVICE_OF:e)-> Transaction:t
+        WHERE e.epoch <= as_of AND e.epoch >= as_of - days * 86400 AND e.customer_id != @@own_cust
+        ACCUM @@nb += (d.device_id, t.card_id, t.customer_id -> 1, e.epoch, e.epoch);
+
+  AllT = SELECT t FROM Elig:d -(DEVICE_OF:e)-> Transaction:t
+         WHERE e.epoch <= as_of AND e.customer_id != @@own_cust
+         ACCUM t.@devs += d.device_id;
+
+  Cc = SELECT k FROM AllT:t -(INVOLVED_IN_CLOSED:ie)-> ClosedCase:k
+       WHERE k.close_epoch <= as_of AND k.outcome == "confirmed_fraud"
+       ACCUM FOREACH dv IN t.@devs DO
+               @@fraud_cust += (dv -> k.customer_id),
+               @@fraud_cases += (dv -> k.case_id)
+             END,
+             @@max_epoch += k.close_epoch;
+
+  PRINT @@max_epoch AS max_epoch_seen, @@own_cust AS own_customer, @@skipped_reason AS skipped_reason, @@skipped_degree AS skipped_degree;
+  PRINT Dv[Dv.device_id, Dv.profile_str, Dv.n_known, Dv.is_null_profile, Dv.snap_class, Dv.snap_customers, Dv.first_epoch,
+           Dv.@own_txns AS own_txns, Dv.@own_first AS own_first, Dv.@own_last AS own_last,
+           Dv.@txns AS txns, Dv.@ncust AS customers, Dv.@new_txns AS new_txns, Dv.@proxy_txns AS proxy_txns,
+           Dv.@first_ep AS first_epoch_asof, Dv.@last_ep AS last_epoch_asof];
+  PRINT @@fraud_cust AS fraud_customers, @@fraud_cases AS fraud_cases;
+  PRINT @@nb AS neighbours;
+}
