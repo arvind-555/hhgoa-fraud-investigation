@@ -47,10 +47,17 @@ class BudgetExceeded(Exception):
 
 
 class TokenBudget:
+    """Case token budget. A call is sent only if used + (estimated input, scaled by the worst estimate error seen so far) + (output reserve) still fits max_total.
+    The estimate is len/3.5, which the provider's own token counts can exceed, so the input estimate carries a safety margin and is raised to the worst
+    observed actual/estimate ratio; the output reserve is at least the per-call output cap. The reply cap sent to the provider is also clamped to what is left."""
+    INPUT_MARGIN = 1.25
+
     def __init__(self, max_total=MAX_CASE_TOKENS, max_call_output=MAX_CALL_OUTPUT):
         self.max_total, self.max_call_output = max_total, max_call_output
         self.used_in = self.used_out = 0
         self.calls = 0
+        self._scale = self.INPUT_MARGIN
+        self._pending_est = None
 
     @property
     def used(self):
@@ -60,15 +67,27 @@ class TokenBudget:
     def estimate(text):
         return int(len(text) / CHARS_PER_TOKEN) + 1
 
+    def _input_need(self, prompt_text):
+        return int(self.estimate(prompt_text) * self._scale) + 1
+
     def check(self, prompt_text):
-        need = self.estimate(prompt_text) + self.max_call_output
+        need = self._input_need(prompt_text) + self.max_call_output
         if self.used + need > self.max_total:
             raise BudgetExceeded(f"estimated {need} tokens would exceed the case budget ({self.used}/{self.max_total} used)")
+        self._pending_est = self.estimate(prompt_text)
+
+    def reply_cap(self, prompt_text, cap=None):
+        """Largest reply the remaining budget can absorb for this prompt (never above the per-call cap)."""
+        room = self.max_total - self.used - self._input_need(prompt_text)
+        return max(1, min(cap or self.max_call_output, self.max_call_output, room))
 
     def charge(self, input_tokens, output_tokens):
         self.used_in += int(input_tokens)
         self.used_out += int(output_tokens)
         self.calls += 1
+        if self._pending_est and int(input_tokens) > 0:
+            self._scale = max(self._scale, int(input_tokens) / self._pending_est * 1.02)     # learn the worst under-estimate (never below the margin)
+        self._pending_est = None
 
 
 class AnthropicHTTP:
@@ -152,7 +171,7 @@ def _call(client, budget, system, user, max_tokens=None, cache=True):
         r = json.loads(f.read_text(encoding="utf-8"))
         r["cached"] = True
     else:
-        r = client.complete(system, user, min(max_tokens or budget.max_call_output, budget.max_call_output))
+        r = client.complete(system, user, budget.reply_cap(system + user, max_tokens))
         if cache:
             CACHE_DIR.mkdir(parents=True, exist_ok=True)
             f.write_text(json.dumps(r), encoding="utf-8")
@@ -172,7 +191,7 @@ def _chat(client, budget, system, messages, tools, max_tokens=None, tool_choice=
         r = json.loads(f.read_text(encoding="utf-8"))
         r["cached"] = True
     else:
-        r = client.chat(system, messages, tools, min(max_tokens or budget.max_call_output, budget.max_call_output), tool_choice)
+        r = client.chat(system, messages, tools, budget.reply_cap(blob, max_tokens), tool_choice)
         if cache:
             CACHE_DIR.mkdir(parents=True, exist_ok=True)
             f.write_text(json.dumps(r), encoding="utf-8")
