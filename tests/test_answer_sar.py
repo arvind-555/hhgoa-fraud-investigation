@@ -26,7 +26,7 @@ class SarTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.ring = make_record()
-        cls.legit = make_record(ring=False, responder=Forced("verified_legitimate"), trigger="customer_complaint")
+        cls.legit = make_record(ring=False, responder=Forced("passed"))
         cls.denied = make_record(responder=Forced("denied_or_unrecognized"))
 
     def test_narrative_covers_who_what_when_where_how_why(self):
@@ -149,7 +149,7 @@ class AnswerFileTests(unittest.TestCase):
         self.has(lambda a: a["case"].update(summary=a["case"]["summary"] + " Also HHG-014."), "other case ids", graph=False)
 
     def test_legitimate_answer_rules(self):
-        rec = make_record(ring=False, responder=Forced("verified_legitimate"), trigger="customer_complaint", case="TEST-A2")
+        rec = make_record(ring=False, responder=Forced("passed"), case="TEST-A2")
         a = AF.assemble(rec)
         self.assertEqual(AF.validate_answer(a, AS_OF, None)[0], [])
         a["case"]["affected_txn_ids"] = ["3000001"]

@@ -57,39 +57,9 @@
         ]
       },
       {
-        "claim": "[SIMULATED] customer validation: denied_or_unrecognized",
-        "source": "customer",
-        "ref": "evidence_request:1",
-        "entity_ids": []
-      },
-      {
-        "claim": "policy text consulted (policy:3a): A case is not a report. Two different things, and the agent produces both.\n\nA case (CREATE_CASE) is the bank's internal record of an investigation. Open one whe",
-        "source": "document",
-        "ref": "document:policy:3a",
-        "entity_ids": []
-      },
-      {
-        "claim": "policy text consulted (policy:R1): When: The case rests on a single signal (including a risk score alone) and the assessed fraud probability is below 0.70. Actions: VERIFY_WITH_CUSTOMER or STEP_U",
-        "source": "document",
-        "ref": "document:policy:R1",
-        "entity_ids": []
-      },
-      {
         "claim": "policy text consulted (policy:R2): When: The customer denies the transaction. Actions: BLOCK_CARD; CREATE_CASE; FILE_REPORT if exposure > $1,000 or the case connects to a shared device profile or",
         "source": "document",
         "ref": "document:policy:R2",
-        "entity_ids": []
-      },
-      {
-        "claim": "policy text consulted (policy:R6): When: Several cards show fraud from the same device profile, billing region or recipient email in one window. Actions: name the shared element; CREATE_CASE; FIL",
-        "source": "document",
-        "ref": "document:policy:R6",
-        "entity_ids": []
-      },
-      {
-        "claim": "policy text consulted (policy:R8): When: Verdict is uncertain and exposure exceeds $500, or the evidence conflicts. Actions: ESCALATE_TO_ANALYST",
-        "source": "document",
-        "ref": "document:policy:R8",
         "entity_ids": []
       }
     ],
@@ -105,45 +75,17 @@
       "CC-4124",
       "CC-0098"
     ],
-    "summary": "Evidence strength: moderate (one validated independent source; 2 independent source(s)); validated evidence: S07 Burst family: ProductCD C, $400-500, >=1 prior same-card txn in 1h; weak context only: S10 Online id_15 = New; simulated response (not real evidence): [SIMULATED] customer validation: denied_or_unrecognized. Investigation uncertainty: high; not available or unresolved: customer response not available yet, no merchant field: policy R7 (recurring merchant) cannot be evaluated; evidence requested (customer_validation), outcome: denied_or_unrecognized. Calibrated probability: not available, because the calibration procedure did not pass its validation gates on the available history (out-of-time validation failed for this evidence class; closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)), so no probability is stated. Recommended (not executed): BLOCK_CARD (L1, R2), CREATE_CASE (auto, R2), FILE_REPORT (L2, R2/R6).",
+    "summary": "Evidence strength: moderate (one validated independent source; 1 validated independent source(s) plus the customer's own statement); validated evidence: S07 Burst family: ProductCD C, $400-500, >=1 prior same-card txn in 1h; weak context only: S10 Online id_15 = New; customer report: the customer states they did not make the transaction (trigger evidence, unverified). Investigation uncertainty: low; not available or unresolved: no merchant field: policy R7 (recurring merchant) cannot be evaluated. Calibrated probability: not available, because the calibration procedure did not pass its validation gates on the available history (out-of-time validation failed for this evidence class; closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)), so no probability is stated. Recommended (not executed): BLOCK_CARD (L1, R2), CREATE_CASE (auto, R2), FILE_REPORT (L2, R2).",
     "written_to_graph": true,
     "graph_case_id": "CASE-HHG-006"
   },
-  "evidence_requests": [
-    {
-      "type": "customer_validation",
-      "asked_after_step": 9,
-      "assumed_response": "[SIMULATED] Customer states they did not make the transaction or do not recognise it."
-    }
-  ],
+  "evidence_requests": [],
   "next_best_actions": {
     "initial": [
       {
-        "action": "STEP_UP_AUTH",
-        "route": "auto",
-        "reason": "R1: single independent source (not strong): verify before any block"
-      },
-      {
-        "action": "CREATE_CASE",
-        "route": "auto",
-        "reason": "evidence requested / moderate evidence: open a case (policy 3a)"
-      },
-      {
-        "action": "MONITOR_CARD",
-        "route": "auto",
-        "reason": "R1: watch the card while evidence is pending"
-      },
-      {
-        "action": "ESCALATE_TO_ANALYST",
-        "route": "auto",
-        "reason": "R8: uncertain and exposure > $500"
-      }
-    ],
-    "final": [
-      {
         "action": "BLOCK_CARD",
         "route": "L1",
-        "reason": "R2: customer denies the transaction"
+        "reason": "R2: the customer report denies the transaction and validated evidence corroborates it"
       },
       {
         "action": "CREATE_CASE",
@@ -153,15 +95,32 @@
       {
         "action": "FILE_REPORT",
         "route": "L2",
-        "reason": "R2: exposure > $1,000 or shared-origin / coordinated evidence"
+        "reason": "R2: exposure above $1,000"
       }
     ],
-    "what_changed": "the denied_or_unrecognized response changed the recommendation"
+    "final": [
+      {
+        "action": "BLOCK_CARD",
+        "route": "L1",
+        "reason": "R2: the customer report denies the transaction and validated evidence corroborates it"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R2"
+      },
+      {
+        "action": "FILE_REPORT",
+        "route": "L2",
+        "reason": "R2: exposure above $1,000"
+      }
+    ],
+    "what_changed": "nothing"
   },
   "sar": {
     "file": true,
-    "reason": "FILE_REPORT recommended (policy section 3a): the activity fits no documented fraud pattern (classified undocumented): repeated same-card purchases within one hour; exposure above $1,000.",
-    "narrative": "Who: the subject is customer C07297, holder of card C07297-K1. What: 4 transaction(s) totalling $1,906.07 across 1 card(s) were identified as one suspected fraud episode, beginning with transaction 3476602. When: the activity ran from 2016-11-21 to 2016-11-21, and the transaction under review occurred on 2016-11-21. Where: the activity was online, with the reviewed transaction billed in billing region 264. How: repeated same-card purchases of $400 to $500 under product code C occurred within one hour. Why suspicious: the activity matches no documented fraud type and consists of repeated same-card purchases of $400 to $500 within one hour; the total exceeds $1,000. Customer contact: the recorded response is simulated for this exercise and is not real customer evidence. Recommended next actions (recommendations only, none executed): BLOCK_CARD, CREATE_CASE, FILE_REPORT. All identifiers and amounts are taken from the bank's transaction records as they stood when the case was opened.",
+    "reason": "FILE_REPORT recommended (policy section 3a): fraud strongly suspected (verdict: fraud); the activity fits no documented fraud pattern (classified undocumented): repeated same-card purchases within one hour; exposure above $1,000.",
+    "narrative": "Who: the subject is customer C07297, holder of card C07297-K1. What: 4 transaction(s) totalling $1,906.07 across 1 card(s) were identified as one suspected fraud episode, beginning with transaction 3476602. When: the activity ran from 2016-11-21 to 2016-11-21, and the transaction under review occurred on 2016-11-21. Where: the activity was online, with the reviewed transaction billed in billing region 264. How: repeated same-card purchases of $400 to $500 under product code C occurred within one hour. Why suspicious: the activity matches no documented fraud type and consists of repeated same-card purchases of $400 to $500 within one hour; the total exceeds $1,000. Recommended next actions (recommendations only, none executed): BLOCK_CARD, CREATE_CASE, FILE_REPORT. All identifiers and amounts are taken from the bank's transaction records as they stood when the case was opened.",
     "subjects": [
       "C07297",
       "C07297-K1"
@@ -172,8 +131,8 @@
       "2016-11-21"
     ]
   },
-  "stop_reason": "simulated customer denial settles the question (R2)",
+  "stop_reason": "customer denial corroborated by a validated independent source: policy R2 applies without further verification",
   "tool_calls": 10,
   "tokens": 0,
-  "latency_s": 30.59
+  "latency_s": 14.33
 }

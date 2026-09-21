@@ -34,6 +34,8 @@ class ContractTests(unittest.TestCase):
                 props[arg] = {"type": "array", "items": {"type": "string"}, "minItems": 1, "maxItems": 12}
             else:
                 props[arg] = {"type": "array", "items": {"type": "string"}}
+        if name == "find_similar_cases":
+            props["k"] = {"type": "integer", "enum": [10]}                                  # the model may only run the canonical query
         return {"type": "object", "properties": props, "required": spec["required"], "additionalProperties": False}
 
     def test_all_ten_tools_remain_with_exactly_the_permission_table_contract(self):

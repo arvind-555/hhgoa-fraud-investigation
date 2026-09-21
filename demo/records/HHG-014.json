@@ -400,18 +400,18 @@
     "rating": "CONTEXT"
    },
    {
-    "claim": "[SIMULATED] step-up authentication: passed",
-    "source": "customer",
-    "ref": "evidence_simulator",
-    "simulated": true,
-    "entity_ids": [],
-    "evidence_id": "E27",
-    "rating": "MEDIUM"
-   },
-   {
     "claim": "policy text consulted (policy:R1): When: The case rests on a single signal (including a risk score alone) and the assessed fraud probability is below 0.70. Actions: VERIFY_WITH_CUSTOMER or STEP_U",
     "source": "document",
     "ref": "document:policy:R1",
+    "simulated": false,
+    "entity_ids": [],
+    "evidence_id": "E27",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "policy text consulted (policy:R4): When: No customer reply within 24 hours. Actions: MONITOR_CARD; DECLINE_TRANSACTION for pending authorizations; escalate if exposure > $500. Requires: a custome",
+    "source": "document",
+    "ref": "document:policy:R4",
     "simulated": false,
     "entity_ids": [],
     "evidence_id": "E28",
@@ -427,21 +427,12 @@
     "rating": "CONTEXT"
    },
    {
-    "claim": "policy text consulted (policy:R8): When: Verdict is uncertain and exposure exceeds $500, or the evidence conflicts. Actions: ESCALATE_TO_ANALYST",
-    "source": "document",
-    "ref": "document:policy:R8",
-    "simulated": false,
-    "entity_ids": [],
-    "evidence_id": "E30",
-    "rating": "CONTEXT"
-   },
-   {
     "claim": "policy text consulted (policy:R9): When: Activity fits none of the known patterns but the evidence shows coordinated or repeated abuse across customers. Actions: CREATE_CASE; FILE_REPORT; ESCALAT",
     "source": "document",
     "ref": "document:policy:R9",
     "simulated": false,
     "entity_ids": [],
-    "evidence_id": "E31",
+    "evidence_id": "E30",
     "rating": "CONTEXT"
    }
   ],
@@ -457,18 +448,18 @@
    "CC-0009",
    "CC-0010"
   ],
-  "summary": "Evidence strength: strong (strong validated evidence; 2 independent source(s)); validated evidence: S01 Shared-origin device ring (compound anomaly) [E1]; weak context only: S10 Online id_15 = New [E2]; S11 Online anonymous/hidden proxy [E3]; S12 Online id_15 = New and a proxy [E4]; simulated response (not real evidence): [SIMULATED] step-up authentication: passed [E27]. Investigation uncertainty: medium; not available or unresolved: customer response not available yet, no merchant field: policy R7 (recurring merchant) cannot be evaluated; evidence requested (step_up_auth), outcome: passed. Calibrated probability: not available, because the calibration procedure did not pass its validation gates on the available history (insufficient history for this evidence class; closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)), so no probability is stated. Recommended (not executed): ESCALATE_TO_ANALYST (auto, R8).",
+  "summary": "Evidence strength: strong (strong validated evidence; 1 validated independent source(s)); validated evidence: S01 Shared-origin device ring (compound anomaly) [E1]; pattern-defining characteristics of the ring rule, not counted as corroboration: S10 Online id_15 = New [E2]; S11 Online anonymous/hidden proxy [E3]; S12 Online id_15 = New and a proxy [E4]. Investigation uncertainty: medium; not available or unresolved: no merchant field: policy R7 (recurring merchant) cannot be evaluated, the customer / step-up reply was not received within 24 hours (simulated assumption of absence, policy R4); evidence requested (customer_validation), outcome: no_response. Calibrated probability: not available, because the calibration procedure did not pass its validation gates on the available history (insufficient history for this evidence class; closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)), so no probability is stated. Recommended (not executed): CREATE_CASE (auto, R9), ESCALATE_TO_ANALYST (auto, R9), FILE_REPORT (L2, R9/R6), MONITOR_CONNECTED_CARDS (auto, R6), VERIFY_WITH_CUSTOMER (auto, R1), MONITOR_CARD (auto, R4), DECLINE_TRANSACTION (L1, R4).",
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-014"
  },
  "evidence_requests": [
   {
-   "type": "step_up_auth",
+   "type": "customer_validation",
    "asked_after_step": 28,
-   "assumed_response": "[SIMULATED] Step-up authentication passed.",
+   "assumed_response": "[SIMULATED] No reply received within 24 hours (the task supplies no replies; this is an assumption of absence, not customer testimony).",
    "simulated": true,
    "request_id": "HHG-014:REQ1",
-   "outcome": "passed"
+   "outcome": "no_response"
   }
  ],
  "next_best_actions": {
@@ -517,7 +508,7 @@
    {
     "action": "VERIFY_WITH_CUSTOMER",
     "route": "auto",
-    "reason": "confirm with the cardholder before any block (R1 spirit; block requires approval)",
+    "reason": "R1: verify before any block",
     "rules": [
      "R1"
     ],
@@ -527,25 +518,131 @@
   ],
   "final": [
    {
-    "action": "ESCALATE_TO_ANALYST",
+    "action": "CREATE_CASE",
     "route": "auto",
-    "reason": "R8: simulated step-up passed but strong shared-origin evidence remains",
+    "reason": "R9: coordinated device-sharing pattern across customers, no documented pattern fits",
     "rules": [
-     "R8"
+     "R9"
     ],
     "executed": false,
     "requires_approval": false
+   },
+   {
+    "action": "ESCALATE_TO_ANALYST",
+    "route": "auto",
+    "reason": "R9: undocumented coordinated pattern",
+    "rules": [
+     "R9"
+    ],
+    "executed": false,
+    "requires_approval": false
+   },
+   {
+    "action": "FILE_REPORT",
+    "route": "L2",
+    "reason": "R9/R6: coordinated activity across customers",
+    "rules": [
+     "R9",
+     "R6"
+    ],
+    "executed": false,
+    "requires_approval": true
+   },
+   {
+    "action": "MONITOR_CONNECTED_CARDS",
+    "route": "auto",
+    "reason": "R6: cards share the eligible device",
+    "rules": [
+     "R6"
+    ],
+    "executed": false,
+    "requires_approval": false
+   },
+   {
+    "action": "VERIFY_WITH_CUSTOMER",
+    "route": "auto",
+    "reason": "R1: verify before any block",
+    "rules": [
+     "R1"
+    ],
+    "executed": false,
+    "requires_approval": false
+   },
+   {
+    "action": "MONITOR_CARD",
+    "route": "auto",
+    "reason": "R4: no reply within 24 h",
+    "rules": [
+     "R4"
+    ],
+    "executed": false,
+    "requires_approval": false
+   },
+   {
+    "action": "DECLINE_TRANSACTION",
+    "route": "L1",
+    "reason": "R4: pending authorisations (if any)",
+    "rules": [
+     "R4"
+    ],
+    "executed": false,
+    "requires_approval": true
    }
   ],
-  "what_changed": "the passed response changed the recommendation"
+  "what_changed": "no reply within 24 h (simulated assumption): policy R4 actions applied"
  },
  "sar": {
-  "file": false,
-  "reason": "No report: policy section 3a requires fraud confirmed or strongly suspected AND (exposure above $1,000, a shared device/region cluster or another customer's fraud, or a coordinated/undocumented pattern); this case does not meet it (final actions: ESCALATE_TO_ANALYST).",
-  "narrative": "",
-  "subjects": [],
-  "total_amount_usd": 0,
-  "activity_dates": []
+  "file": true,
+  "reason": "FILE_REPORT recommended (policy section 3a): fraud strongly suspected (verdict: fraud); R9: coordinated abuse across customers (shared-origin device ring) that fits no documented pattern; R6: shared device profile linking several cards; exposure above $1,000.",
+  "narrative": "Who: the subject is customer C13487, holder of card C13487-K1, together with 19 other card(s) (C01289-K1, C01996-K2, C02910-K1, C02975-K1, C03676-K2, C04108-K2, C04274-K1, C05448-K2, and others) that used the same device profile. What: 26 transaction(s) totalling $3,778.14 across 20 card(s) were identified as one suspected fraud episode, beginning with transaction 3457285. When: the activity ran from 2016-11-14 to 2016-11-22, and the transaction under review occurred on 2016-11-22. Where: the activity was online, with the reviewed transaction billed in billing region 191 and using device profile SM-G935F Build/NRD90M | Android 7.0 | chrome 62.0 for android | 1920x1080 (D_2c2006f554). How: one device profile was shared by 44 customers, 100% of its transactions carried a new-device marker and 100% came through an anonymising proxy, which is how the linked cards were found. Why suspicious: the pattern matches no documented fraud type but shows coordinated use of one device across many customers (policy R9); several cards are tied to one device profile (policy R6); the total exceeds $1,000. Recommended next actions (recommendations only, none executed): CREATE_CASE, ESCALATE_TO_ANALYST, FILE_REPORT, MONITOR_CONNECTED_CARDS, VERIFY_WITH_CUSTOMER, MONITOR_CARD, DECLINE_TRANSACTION. All identifiers and amounts are taken from the bank's transaction records as they stood when the case was opened.",
+  "subjects": [
+   "C01289",
+   "C01996",
+   "C02910",
+   "C02975",
+   "C03676",
+   "C04108",
+   "C04274",
+   "C05448",
+   "C06710",
+   "C08168",
+   "C09049",
+   "C09906",
+   "C09975",
+   "C10193",
+   "C10326",
+   "C11082",
+   "C11670",
+   "C12796",
+   "C13291",
+   "C13487",
+   "C13487-K1",
+   "C01289-K1",
+   "C01996-K2",
+   "C02910-K1",
+   "C02975-K1",
+   "C03676-K2",
+   "C04108-K2",
+   "C04274-K1",
+   "C05448-K2",
+   "C06710-K1",
+   "C08168-K1",
+   "C09049-K1",
+   "C09906-K1",
+   "C09975-K1",
+   "C10193-K2",
+   "C10326-K1",
+   "C11082-K1",
+   "C11670-K2",
+   "C12796-K1",
+   "C13291-K1",
+   "D_2c2006f554"
+  ],
+  "total_amount_usd": 3778.14,
+  "activity_dates": [
+   "2016-11-14",
+   "2016-11-22"
+  ]
  },
  "graph_refs": {
   "card_id": "C13487-K1",
@@ -675,16 +772,14 @@
   "complete": true,
   "other_card_exposure_usd": 3590.81
  },
- "simulated_evidence_ids": [
-  "E27"
- ],
+ "simulated_evidence_ids": [],
  "uncertainty": {
   "evidence_strength": "strong",
-  "independent_sources": 2,
+  "independent_sources": 1,
   "conflicts": [],
   "missing": [
-   "customer response not available yet",
-   "no merchant field: policy R7 (recurring merchant) cannot be evaluated"
+   "no merchant field: policy R7 (recurring merchant) cannot be evaluated",
+   "the customer / step-up reply was not received within 24 hours (simulated assumption of absence, policy R4)"
   ],
   "level": "medium",
   "needs_more_evidence": true,
@@ -704,18 +799,27 @@
    ]
   },
   "reasons": [
-   "tier1-5 independent sources: 1",
-   "low-context sources: 1",
+   "validated independent sources (tier 1-5): 1",
+   "customer statement (immutable trigger evidence): no",
+   "pattern-defining characteristics (not counted as corroboration): S10, S11, S12",
+   "context signals (weak, not independent proof): none",
    "model alert band: low"
-  ]
+  ],
+  "pattern_defining": [
+   "S10",
+   "S11",
+   "S12"
+  ],
+  "corroborating": [],
+  "customer_statement": ""
  },
- "stop_reason": "simulated step-up passed but strong shared-origin evidence remains: escalate (R8)",
+ "stop_reason": "no customer reply within 24 h (simulated assumption of absence, R4); the evidence stands and is strong enough to act on",
  "recommendation_only": true,
  "graph_write": {
   "graph_case_id": "CASE-HHG-014",
-  "revision": 1,
-  "action": "unchanged",
-  "content_sha256": "690b529fba426a5f41ac2d1bb50738de8223718ec7543f4d0bd15d1c4afcb96f",
+  "revision": 3,
+  "action": "updated",
+  "content_sha256": "4dc7ad7719eacf8674bf2054272160c8327a1be2ada695c130285aa09868c64f",
   "written_to_graph": true
  },
  "tool_calls": 29,
@@ -744,17 +848,17 @@
   "tokens": 0,
   "calls": 0
  },
- "latency_s": 30.78,
+ "latency_s": 46.07,
  "trace": [
   {
    "step": 1,
    "state": "INITIAL_INVESTIGATION",
-   "ms": 15762.6,
+   "ms": 13085.5,
    "tool_calls": [
     "get_transaction_context",
-    "get_card_history",
-    "find_shared_devices",
     "get_customer_history",
+    "find_shared_devices",
+    "get_card_history",
     "find_prior_cases",
     "detect_fraud_patterns",
     "find_connected_entities",
@@ -785,14 +889,14 @@
   {
    "step": 2,
    "state": "EVIDENCE_SYNTHESIS",
-   "ms": 0.3,
+   "ms": 0.6,
    "tool_calls": [],
    "note": ""
   },
   {
    "step": 3,
    "state": "UNCERTAINTY_ASSESSMENT",
-   "ms": 0.0,
+   "ms": 0.1,
    "tool_calls": [],
    "note": ""
   },
@@ -801,28 +905,28 @@
    "state": "ADDITIONAL_EVIDENCE_REQUEST",
    "ms": 0.0,
    "tool_calls": [],
-   "note": "outcome=passed (simulated)"
+   "note": "outcome=no_response (simulated)"
   },
   {
    "step": 5,
    "state": "NEXT_BEST_ACTION",
-   "ms": 1435.6,
+   "ms": 1282.2,
    "tool_calls": [
     "retrieve_policy"
    ],
-   "note": "initial=['CREATE_CASE', 'ESCALATE_TO_ANALYST', 'FILE_REPORT', 'MONITOR_CONNECTED_CARDS', 'VERIFY_WITH_CUSTOMER'] final=['ESCALATE_TO_ANALYST']"
+   "note": "initial=['CREATE_CASE', 'ESCALATE_TO_ANALYST', 'FILE_REPORT', 'MONITOR_CONNECTED_CARDS', 'VERIFY_WITH_CUSTOMER'] final=['CREATE_CASE', 'ESCALATE_TO_ANALYST', 'FILE_REPORT', 'MONITOR_CONNECTED_CARDS', 'VERIFY_WITH_CUSTOMER', 'MONITOR_CARD', 'DECLINE_TRANSACTION']"
   },
   {
    "step": 6,
    "state": "EXPLANATION",
-   "ms": 0.6,
+   "ms": 0.9,
    "tool_calls": [],
    "note": ""
   },
   {
    "step": 7,
    "state": "CASE_WRITE",
-   "ms": 13580.4,
+   "ms": 31701.8,
    "tool_calls": [],
    "note": ""
   }
@@ -831,7 +935,7 @@
   "tool_calls": 29,
   "graph_queries_executed": 28,
   "cache_hits": 10,
-  "tool_ms_total": 43083.8,
-  "tool_ms_max": 6285.4
+  "tool_ms_total": 37596.9,
+  "tool_ms_max": 4754.7
  }
 }

@@ -210,7 +210,7 @@ class SarWriterTests(Base):
     def test_no_report_means_no_llm_call_for_the_sar(self):
         c = FakeClient(fn=good_explanation)
         k, b = self.agent_kwargs(c)
-        rec = make_record(case="TEST-L5", ring=False, responder=Forced("verified_legitimate"), trigger="customer_complaint", **k)
+        rec = make_record(case="TEST-L5", ring=False, responder=Forced("passed"), **k)
         self.assertFalse(rec["sar"]["file"])
         self.assertEqual(rec["llm"]["sar"]["reason"], "not called")
         self.assertTrue(all("template_narrative" not in p[1] for p in c.prompts))

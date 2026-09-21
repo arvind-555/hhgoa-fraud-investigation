@@ -63,6 +63,9 @@ class Uncertainty:
     needs_more_evidence: bool
     calibrated_probability: dict    # {value: None unless calibrated, calibrated, source, method, status, gates_failed, gate_notes}
     reasons: list
+    pattern_defining: list = field(default_factory=list)     # signals that DEFINE the pattern (e.g. S10/S11/S12 inside an S01 ring): never counted as corroboration
+    corroborating: list = field(default_factory=list)        # weak context signals: reported, never counted as independent evidence
+    customer_statement: str = ""                           # "denial" when the trigger is a customer report (immutable, real trigger evidence)
 
 
 @dataclass

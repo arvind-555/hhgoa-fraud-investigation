@@ -62,14 +62,20 @@ case write to the graph, answer-file validator and SAR narrative are not built; 
 
 ## B4: deterministic evidence simulator (policy b4-v1) and connected-card exposure
 
-**Simulator** (`src/agent/simulator.py`). Seed `hhgoa-b4-sim-v1`. Outcome = SHA-256(`seed|case_id|request_type`) mapped through fixed cumulative probabilities.
-customer_validation: verified_legitimate 0.40, denied_or_unrecognized 0.40, no_response 0.20. step_up_auth: passed 0.45, failed 0.35, no_response 0.20.
-Inputs are only the agent-issued request (`<case_id>:REQ<n>`, type) and the case id; it has no graph client, data, labels, closed cases, clock or risk score
-(`tests/test_simulator_exposure.py` checks its imports are `hashlib` and `re` only). It refuses unissued requests, other cases, type mismatches and analyst_info.
-All text is prefixed `[SIMULATED]`; simulated evidence is a separate frozen `Evidence(simulated=True)` appended after graph evidence, and case output flags it
-(`evidence[].simulated`, `simulated_evidence_ids`, `evidence_requests[].simulated`). `no_response` adds no evidence and keeps the case open.
-Effects: verified_legitimate -> R3 CLOSE_NO_FRAUD (escalate if strong shared-origin evidence remains); denied_or_unrecognized -> R2; passed -> ALLOW_TRANSACTION + MONITOR_CARD
-(escalate under strong shared-origin evidence); failed -> DECLINE_TRANSACTION, CREATE_CASE, VERIFY_WITH_CUSTOMER, MONITOR_CARD (no block).
+**Simulator** (`src/agent/simulator.py`, policy b5-v1, supersedes the hash-seeded b4-v1). NO randomness and NO hash: a response is a pure function of
+(scenario, request type, trigger type). The task supplies no replies, so the default scenario `no_reply` assumes "no reply within 24 hours" (absence of evidence, not
+testimony; policy R4 applies). Explicit what-if scenarios `cardholder_confirms` / `cardholder_denies` exist for tests and demonstrations and are never used by the benchmark run.
+A customer REPORT is immutable trigger evidence: the simulator refuses to have that customer confirm the transaction. It has no graph client, data, labels, closed cases, clock or risk score
+(`tests/test_simulator_exposure.py` checks its only import is `re`). It refuses unissued requests, other cases, type mismatches and analyst_info.
+What each response represents: `no_response` = no evidence (R4); `verified_legitimate` = what-if: cardholder confirms (R3); `denied_or_unrecognized` = what-if: cardholder does not
+recognise it (R2); `passed` / `failed` = what-if: authentication outcome. All text is prefixed `[SIMULATED]`; simulated evidence is a separate frozen `Evidence(simulated=True)` appended after
+graph evidence, and case output flags it (`evidence[].simulated`, `simulated_evidence_ids`, `evidence_requests[].simulated`). `no_response` adds no evidence.
+
+**Decision matrix** (`src/agent/actions.py`, the module docstring is the table). Classes: A strong graph evidence; T+ customer report + one validated source; T customer report only;
+B one validated source; C weak / none. Verification states: D positive, E negative, F no reply. Verdicts come only from evidence class + response + policy (`decide_verdict`);
+`policy_gaps` makes the orchestrator raise if R6 / R9 / 3a required actions (CREATE_CASE, FILE_REPORT, MONITOR_CONNECTED_CARDS) are missing. Insufficient evidence yields `uncertain`.
+Evidence independence: pattern-defining characteristics (S10/S11/S12 inside an S01 ring) and weak context signals are recorded but never counted as independent evidence; a customer
+report counts as one separate (unverified) source.
 
 **Exposure** (`Agent._expand_exposure`). When S01 or S02a/b fires, for each other card on the evidence device(s) (from `find_shared_devices` neighbours, at most 40 cards) call
 `get_card_history` and add its transactions that (a) are on the evidence device, (b) are within 30 days before the flagged transaction and not after as_of (guaranteed by the tool and re-checked),

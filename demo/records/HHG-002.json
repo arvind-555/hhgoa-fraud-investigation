@@ -1,8 +1,8 @@
 {
  "case_id": "HHG-002",
  "case": {
-  "status": "closed_legitimate",
-  "verdict": "legitimate",
+  "status": "open",
+  "verdict": "uncertain",
   "fraud_probability": null,
   "probability_calibrated": false,
   "probability_source": "unavailable",
@@ -15,11 +15,13 @@
   },
   "pattern": "card_not_present_fraud",
   "pattern_description": "",
-  "affected_txn_ids": [],
-  "first_suspicious_txn_id": "",
+  "affected_txn_ids": [
+   "3478782"
+  ],
+  "first_suspicious_txn_id": "3478782",
   "connected_card_ids": [],
   "connected_device_profiles": [],
-  "exposure_usd": 0,
+  "exposure_usd": 292.36,
   "evidence": [
    {
     "claim": "S08 Amount anomaly: online z-score > 2 vs the card's own log-amount history (>=20 prior)",
@@ -111,27 +113,27 @@
     "rating": "CONTEXT"
    },
    {
-    "claim": "[SIMULATED] step-up authentication: passed",
-    "source": "customer",
-    "ref": "evidence_simulator",
-    "simulated": true,
-    "entity_ids": [],
-    "evidence_id": "E9",
-    "rating": "MEDIUM"
-   },
-   {
     "claim": "policy text consulted (policy:3a): A case is not a report. Two different things, and the agent produces both.\n\nA case (CREATE_CASE) is the bank's internal record of an investigation. Open one whe",
     "source": "document",
     "ref": "document:policy:3a",
     "simulated": false,
     "entity_ids": [],
-    "evidence_id": "E10",
+    "evidence_id": "E9",
     "rating": "CONTEXT"
    },
    {
     "claim": "policy text consulted (policy:R1): When: The case rests on a single signal (including a risk score alone) and the assessed fraud probability is below 0.70. Actions: VERIFY_WITH_CUSTOMER or STEP_U",
     "source": "document",
     "ref": "document:policy:R1",
+    "simulated": false,
+    "entity_ids": [],
+    "evidence_id": "E10",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "policy text consulted (policy:R4): When: No customer reply within 24 hours. Actions: MONITOR_CARD; DECLINE_TRANSACTION for pending authorizations; escalate if exposure > $500. Requires: a custome",
+    "source": "document",
+    "ref": "document:policy:R4",
     "simulated": false,
     "entity_ids": [],
     "evidence_id": "E11",
@@ -150,7 +152,7 @@
    "CC-4589",
    "CC-0009"
   ],
-  "summary": "Evidence strength: moderate (one validated independent source; 2 independent source(s)); validated evidence: S08 Amount anomaly: online z-score > 2 vs the card's own log-amount history (>=20 prior) [E1]; weak context only: S05 Repeat victim: visible prior confirmed case on the card or customer [E2]; S13 Online billing region (addr1) missing [E3]; S14 Online with no identity record [E4]; simulated response (not real evidence): [SIMULATED] step-up authentication: passed [E9]. Investigation uncertainty: high; not available or unresolved: customer response not available yet, no merchant field: policy R7 (recurring merchant) cannot be evaluated; evidence requested (step_up_auth), outcome: passed. Calibrated probability: not available, because the calibration procedure did not pass its validation gates on the available history (out-of-time validation failed for this evidence class; closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)), so no probability is stated. Recommended (not executed): ALLOW_TRANSACTION (auto, R1), MONITOR_CARD (auto, R1).",
+  "summary": "Evidence strength: moderate (one validated independent source; 1 validated independent source(s)); validated evidence: S08 Amount anomaly: online z-score > 2 vs the card's own log-amount history (>=20 prior) [E1]; weak context only: S05 Repeat victim: visible prior confirmed case on the card or customer [E2]; S13 Online billing region (addr1) missing [E3]; S14 Online with no identity record [E4]. Investigation uncertainty: high; not available or unresolved: no merchant field: policy R7 (recurring merchant) cannot be evaluated, the customer / step-up reply was not received within 24 hours (simulated assumption of absence, policy R4); evidence requested (step_up_auth), outcome: no_response. Calibrated probability: not available, because the calibration procedure did not pass its validation gates on the available history (out-of-time validation failed for this evidence class; closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)), so no probability is stated. Recommended (not executed): MONITOR_CARD (auto, R4), DECLINE_TRANSACTION (L1, R4), CREATE_CASE (auto, 3a).",
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-002"
  },
@@ -158,10 +160,10 @@
   {
    "type": "step_up_auth",
    "asked_after_step": 9,
-   "assumed_response": "[SIMULATED] Step-up authentication passed.",
+   "assumed_response": "[SIMULATED] No reply received within 24 hours (the task supplies no replies; this is an assumption of absence, not customer testimony).",
    "simulated": true,
    "request_id": "HHG-002:REQ1",
-   "outcome": "passed"
+   "outcome": "no_response"
   }
  ],
  "next_best_actions": {
@@ -169,7 +171,7 @@
    {
     "action": "STEP_UP_AUTH",
     "route": "auto",
-    "reason": "R1: single independent source (not strong): verify before any block",
+    "reason": "R1: verify before any block",
     "rules": [
      "R1"
     ],
@@ -199,31 +201,41 @@
   ],
   "final": [
    {
-    "action": "ALLOW_TRANSACTION",
+    "action": "MONITOR_CARD",
     "route": "auto",
-    "reason": "simulated step-up authentication passed and no validated evidence contradicts it",
+    "reason": "R4: no reply within 24 h",
     "rules": [
-     "R1"
+     "R4"
     ],
     "executed": false,
     "requires_approval": false
    },
    {
-    "action": "MONITOR_CARD",
-    "route": "auto",
-    "reason": "watch the card after a passed step-up",
+    "action": "DECLINE_TRANSACTION",
+    "route": "L1",
+    "reason": "R4: pending authorisations (if any)",
     "rules": [
-     "R1"
+     "R4"
+    ],
+    "executed": false,
+    "requires_approval": true
+   },
+   {
+    "action": "CREATE_CASE",
+    "route": "auto",
+    "reason": "evidence requested / moderate evidence: open a case (policy 3a)",
+    "rules": [
+     "3a"
     ],
     "executed": false,
     "requires_approval": false
    }
   ],
-  "what_changed": "the passed response changed the recommendation"
+  "what_changed": "no reply within 24 h (simulated assumption): policy R4 actions applied"
  },
  "sar": {
   "file": false,
-  "reason": "No report: policy section 3a requires fraud confirmed or strongly suspected AND (exposure above $1,000, a shared device/region cluster or another customer's fraud, or a coordinated/undocumented pattern); this case does not meet it (final actions: ALLOW_TRANSACTION, MONITOR_CARD).",
+  "reason": "No report: policy section 3a requires fraud to be confirmed or strongly suspected; the verdict is uncertain (evidence strength: moderate), so a report is not warranted on the evidence available.",
   "narrative": "",
   "subjects": [],
   "total_amount_usd": 0,
@@ -322,16 +334,14 @@
   "complete": true,
   "other_card_exposure_usd": 0
  },
- "simulated_evidence_ids": [
-  "E9"
- ],
+ "simulated_evidence_ids": [],
  "uncertainty": {
   "evidence_strength": "moderate",
-  "independent_sources": 2,
+  "independent_sources": 1,
   "conflicts": [],
   "missing": [
-   "customer response not available yet",
-   "no merchant field: policy R7 (recurring merchant) cannot be evaluated"
+   "no merchant field: policy R7 (recurring merchant) cannot be evaluated",
+   "the customer / step-up reply was not received within 24 hours (simulated assumption of absence, policy R4)"
   ],
   "level": "high",
   "needs_more_evidence": true,
@@ -351,18 +361,27 @@
    ]
   },
   "reasons": [
-   "tier1-5 independent sources: 1",
-   "low-context sources: 2",
+   "validated independent sources (tier 1-5): 1",
+   "customer statement (immutable trigger evidence): no",
+   "pattern-defining characteristics (not counted as corroboration): none",
+   "context signals (weak, not independent proof): S05, S13, S14",
    "model alert band: high"
-  ]
+  ],
+  "pattern_defining": [],
+  "corroborating": [
+   "S05",
+   "S13",
+   "S14"
+  ],
+  "customer_statement": ""
  },
- "stop_reason": "simulated step-up passed; no shared-origin evidence contradicts it",
+ "stop_reason": "no customer reply within 24 h (simulated assumption of absence, R4); the evidence is insufficient to conclude, so the verdict stays uncertain",
  "recommendation_only": true,
  "graph_write": {
   "graph_case_id": "CASE-HHG-002",
-  "revision": 1,
+  "revision": 3,
   "action": "unchanged",
-  "content_sha256": "6e6d96cbd1949153a138cd6434bf8e3dbc600c680737edbfd70afdf1b9f4e435",
+  "content_sha256": "6a0d07279f1cff943aa0a67a6c90d9d285703cf8b3ee7c485c6d58d8c395c6a2",
   "written_to_graph": true
  },
  "tool_calls": 10,
@@ -391,20 +410,20 @@
   "tokens": 0,
   "calls": 0
  },
- "latency_s": 18.4,
+ "latency_s": 10.97,
  "trace": [
   {
    "step": 1,
    "state": "INITIAL_INVESTIGATION",
-   "ms": 13184.1,
+   "ms": 5794.9,
    "tool_calls": [
     "get_transaction_context",
-    "get_customer_history",
     "find_shared_devices",
+    "get_customer_history",
     "get_card_history",
-    "find_connected_entities",
     "find_prior_cases",
     "detect_fraud_patterns",
+    "find_connected_entities",
     "find_similar_cases",
     "get_policy_context"
    ],
@@ -429,28 +448,28 @@
    "state": "ADDITIONAL_EVIDENCE_REQUEST",
    "ms": 0.0,
    "tool_calls": [],
-   "note": "outcome=passed (simulated)"
+   "note": "outcome=no_response (simulated)"
   },
   {
    "step": 5,
    "state": "NEXT_BEST_ACTION",
-   "ms": 1275.7,
+   "ms": 1546.7,
    "tool_calls": [
     "retrieve_policy"
    ],
-   "note": "initial=['STEP_UP_AUTH', 'CREATE_CASE', 'MONITOR_CARD'] final=['ALLOW_TRANSACTION', 'MONITOR_CARD']"
+   "note": "initial=['STEP_UP_AUTH', 'CREATE_CASE', 'MONITOR_CARD'] final=['MONITOR_CARD', 'DECLINE_TRANSACTION', 'CREATE_CASE']"
   },
   {
    "step": 6,
    "state": "EXPLANATION",
-   "ms": 0.4,
+   "ms": 0.6,
    "tool_calls": [],
    "note": ""
   },
   {
    "step": 7,
    "state": "CASE_WRITE",
-   "ms": 3937.8,
+   "ms": 3623.8,
    "tool_calls": [],
    "note": ""
   }
@@ -459,7 +478,7 @@
   "tool_calls": 10,
   "graph_queries_executed": 9,
   "cache_hits": 10,
-  "tool_ms_total": 21251.7,
-  "tool_ms_max": 10871.1
+  "tool_ms_total": 14808.0,
+  "tool_ms_max": 3224.7
  }
 }

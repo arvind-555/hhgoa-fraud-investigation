@@ -38,7 +38,7 @@
   "opened_at": "2016-11-22 02:30:00",
   "as_of_note": "Evidence is limited to what existed at the time the case opened.",
   "evidence_strength": "moderate",
-  "uncertainty_level": "high"
+  "uncertainty_level": "low"
  },
  "trigger": {
   "text": "Customer C07297 message: 'I never made this $482.12 purchase. Please check my card.' Refers to 3476682.",
@@ -52,34 +52,26 @@
  },
  "uncertainty": {
   "evidence_strength": "moderate",
-  "level": "high",
+  "level": "low",
   "independent_sources": 2,
   "conflicts": [],
   "missing": [
-   "customer response not available yet",
    "no merchant field: policy R7 (recurring merchant) cannot be evaluated"
   ],
   "reasons": [
-   "tier1-5 independent sources: 1",
-   "low-context sources: 1",
+   "validated independent sources (tier 1-5): 1",
+   "customer statement (immutable trigger evidence): yes",
+   "pattern-defining characteristics (not counted as corroboration): none",
+   "context signals (weak, not independent proof): S10",
    "model alert band: low"
   ],
-  "needs_more_evidence": true,
-  "before_verdict": "uncertain",
+  "needs_more_evidence": false,
+  "before_verdict": "fraud",
   "after_verdict": "fraud",
   "after_status": "closed_fraud",
-  "statement": "Before additional evidence, the evidence was not enough to settle this case on its own."
+  "statement": "The available evidence supports the verdict without further requests."
  },
- "requests": [
-  {
-   "type": "customer_validation",
-   "label": "Customer verification",
-   "asked_after_step": 9,
-   "assumed_response": "[SIMULATED] Customer states they did not make the transaction or do not recognise it.",
-   "outcome": "denied_or_unrecognized",
-   "simulated": true
-  }
- ],
+ "requests": [],
  "evidence": [
   {
    "category": "Transaction",
@@ -156,73 +148,13 @@
    ]
   },
   {
-   "category": "Additional evidence",
-   "items": [
-    {
-     "id": "E5",
-     "title": "[SIMULATED] customer validation: denied_or_unrecognized",
-     "source": "evidence_simulator",
-     "source_label": "evidence_simulator",
-     "rating": "HIGH",
-     "strength": "Strong",
-     "why": "Simulated response: not real customer evidence.",
-     "entities": [],
-     "simulated": true
-    }
-   ]
-  },
-  {
    "category": "Policy",
    "items": [
     {
-     "id": "E6",
-     "title": "policy text consulted (policy:3a): A case is not a report. Two different things, and the agent produces both.\n\nA case (CREATE_CASE) is the bank's internal record of an investigation. Open one whe",
-     "source": "policy:3a",
-     "source_label": "policy:3a",
-     "rating": "CONTEXT",
-     "strength": "Context",
-     "why": "Context for the analyst. Not counted toward evidence strength.",
-     "entities": [],
-     "simulated": false
-    },
-    {
-     "id": "E7",
-     "title": "policy text consulted (policy:R1): When: The case rests on a single signal (including a risk score alone) and the assessed fraud probability is below 0.70. Actions: VERIFY_WITH_CUSTOMER or STEP_U",
-     "source": "policy:R1",
-     "source_label": "policy:R1",
-     "rating": "CONTEXT",
-     "strength": "Context",
-     "why": "Context for the analyst. Not counted toward evidence strength.",
-     "entities": [],
-     "simulated": false
-    },
-    {
-     "id": "E8",
+     "id": "E5",
      "title": "policy text consulted (policy:R2): When: The customer denies the transaction. Actions: BLOCK_CARD; CREATE_CASE; FILE_REPORT if exposure > $1,000 or the case connects to a shared device profile or",
      "source": "policy:R2",
      "source_label": "policy:R2",
-     "rating": "CONTEXT",
-     "strength": "Context",
-     "why": "Context for the analyst. Not counted toward evidence strength.",
-     "entities": [],
-     "simulated": false
-    },
-    {
-     "id": "E9",
-     "title": "policy text consulted (policy:R6): When: Several cards show fraud from the same device profile, billing region or recipient email in one window. Actions: name the shared element; CREATE_CASE; FIL",
-     "source": "policy:R6",
-     "source_label": "policy:R6",
-     "rating": "CONTEXT",
-     "strength": "Context",
-     "why": "Context for the analyst. Not counted toward evidence strength.",
-     "entities": [],
-     "simulated": false
-    },
-    {
-     "id": "E10",
-     "title": "policy text consulted (policy:R8): When: Verdict is uncertain and exposure exceeds $500, or the evidence conflicts. Actions: ESCALATE_TO_ANALYST",
-     "source": "policy:R8",
-     "source_label": "policy:R8",
      "rating": "CONTEXT",
      "strength": "Context",
      "why": "Context for the analyst. Not counted toward evidence strength.",
@@ -239,7 +171,7 @@
     "state": "INITIAL_INVESTIGATION",
     "label": "Evidence gathering",
     "start_ms": 0,
-    "duration_ms": 11358,
+    "duration_ms": 7635,
     "tool_calls": 9,
     "note": ""
    },
@@ -247,7 +179,7 @@
     "step": 2,
     "state": "EVIDENCE_SYNTHESIS",
     "label": "Evidence synthesis",
-    "start_ms": 11358,
+    "start_ms": 7635,
     "duration_ms": 0,
     "tool_calls": 0,
     "note": ""
@@ -256,44 +188,35 @@
     "step": 3,
     "state": "UNCERTAINTY_ASSESSMENT",
     "label": "Uncertainty assessment",
-    "start_ms": 11358,
+    "start_ms": 7636,
     "duration_ms": 0,
     "tool_calls": 0,
     "note": ""
    },
    {
     "step": 4,
-    "state": "ADDITIONAL_EVIDENCE_REQUEST",
-    "label": "Additional evidence",
-    "start_ms": 11358,
-    "duration_ms": 0,
-    "tool_calls": 0,
-    "note": "outcome=denied_or_unrecognized (simulated)"
+    "state": "NEXT_BEST_ACTION",
+    "label": "Next best action",
+    "start_ms": 7636,
+    "duration_ms": 1778,
+    "tool_calls": 1,
+    "note": "initial=['BLOCK_CARD', 'CREATE_CASE', 'FILE_REPORT'] final=['BLOCK_CARD', 'CREATE_CASE', 'FILE_REPORT']"
    },
    {
     "step": 5,
-    "state": "NEXT_BEST_ACTION",
-    "label": "Next best action",
-    "start_ms": 11358,
-    "duration_ms": 1332,
-    "tool_calls": 1,
-    "note": "initial=['STEP_UP_AUTH', 'CREATE_CASE', 'MONITOR_CARD', 'ESCALATE_TO_ANALYST'] final=['BLOCK_CARD', 'CREATE_CASE', 'FILE_REPORT']"
-   },
-   {
-    "step": 6,
     "state": "EXPLANATION",
     "label": "Case explanation",
-    "start_ms": 12690,
+    "start_ms": 9414,
     "duration_ms": 0,
     "tool_calls": 0,
     "note": ""
    },
    {
-    "step": 7,
+    "step": 6,
     "state": "CASE_WRITE",
     "label": "Case written to TigerGraph",
-    "start_ms": 12690,
-    "duration_ms": 17903,
+    "start_ms": 9414,
+    "duration_ms": 4918,
     "tool_calls": 0,
     "note": ""
    }
@@ -361,23 +284,6 @@
    },
    {
     "stage": "gather",
-    "label": "Customer history analyzed",
-    "tool": "get_customer_history",
-    "source": "Customer history",
-    "status": "done",
-    "step": 1,
-    "simulated": false,
-    "summary": "Retrieved; nothing notable recorded as evidence",
-    "detail": [
-     "1 call"
-    ],
-    "reveal": [
-     "evidence"
-    ],
-    "i": 2
-   },
-   {
-    "stage": "gather",
     "label": "Shared-device analysis",
     "tool": "find_shared_devices",
     "source": "Shared-device analysis",
@@ -390,6 +296,23 @@
     ],
     "reveal": [
      "graph",
+     "evidence"
+    ],
+    "i": 2
+   },
+   {
+    "stage": "gather",
+    "label": "Customer history analyzed",
+    "tool": "get_customer_history",
+    "source": "Customer history",
+    "status": "done",
+    "step": 1,
+    "simulated": false,
+    "summary": "Retrieved; nothing notable recorded as evidence",
+    "detail": [
+     "1 call"
+    ],
+    "reveal": [
      "evidence"
     ],
     "i": 3
@@ -413,23 +336,6 @@
    },
    {
     "stage": "gather",
-    "label": "Connected entities",
-    "tool": "find_connected_entities",
-    "source": "Connected entities",
-    "status": "done",
-    "step": 1,
-    "simulated": false,
-    "summary": "Retrieved; nothing notable recorded as evidence",
-    "detail": [
-     "1 call"
-    ],
-    "reveal": [
-     "graph"
-    ],
-    "i": 5
-   },
-   {
-    "stage": "gather",
     "label": "Prior cases",
     "tool": "find_prior_cases",
     "source": "Prior cases",
@@ -442,6 +348,23 @@
     ],
     "reveal": [
      "evidence"
+    ],
+    "i": 5
+   },
+   {
+    "stage": "gather",
+    "label": "Connected entities",
+    "tool": "find_connected_entities",
+    "source": "Connected entities",
+    "status": "done",
+    "step": 1,
+    "simulated": false,
+    "summary": "Retrieved; nothing notable recorded as evidence",
+    "detail": [
+     "1 call"
+    ],
+    "reveal": [
+     "graph"
     ],
     "i": 6
    },
@@ -523,9 +446,8 @@
     "status": "done",
     "step": 3,
     "simulated": false,
-    "summary": "Evidence is insufficient to settle the case: more evidence needed",
+    "summary": "No further evidence needed",
     "detail": [
-     "customer response not available yet",
      "no merchant field: policy R7 (recurring merchant) cannot be evaluated"
     ],
     "reveal": [
@@ -534,34 +456,19 @@
     "i": 11
    },
    {
-    "stage": "request",
-    "label": "Customer verification requested",
-    "tool": null,
-    "source": "Simulated responder",
-    "status": "denied_or_unrecognized",
-    "step": 4,
-    "simulated": true,
-    "summary": "[SIMULATED] Customer states they did not make the transaction or do not recognise it.",
-    "detail": [],
-    "reveal": [
-     "requests"
-    ],
-    "i": 12
-   },
-   {
     "stage": "action",
     "label": "Next-best action selected",
     "tool": null,
     "source": "Deterministic action engine",
     "status": "done",
-    "step": 5,
+    "step": 4,
     "simulated": false,
     "summary": "BLOCK_CARD [L1], CREATE_CASE [auto], FILE_REPORT [L2]",
     "detail": [],
     "reveal": [
      "action"
     ],
-    "i": 13
+    "i": 12
    },
    {
     "stage": "explain",
@@ -569,7 +476,7 @@
     "tool": null,
     "source": "Template explainer",
     "status": "done",
-    "step": 6,
+    "step": 5,
     "simulated": false,
     "summary": "Case summary and SAR decision assembled",
     "detail": [],
@@ -577,7 +484,7 @@
      "summary",
      "sar"
     ],
-    "i": 14
+    "i": 13
    },
    {
     "stage": "write",
@@ -585,63 +492,25 @@
     "tool": null,
     "source": "Case writer",
     "status": "done",
-    "step": 7,
+    "step": 6,
     "simulated": false,
-    "summary": "CASE-HHG-006 \u00b7 revision 2 \u00b7 updated",
+    "summary": "CASE-HHG-006 \u00b7 revision 4 \u00b7 unchanged",
     "detail": [],
     "reveal": [
      "case"
     ],
-    "i": 15
+    "i": 14
    }
   ],
-  "total_ms": 30594
+  "total_ms": 14332
  },
  "actions": {
   "initial": [
    {
-    "action": "STEP_UP_AUTH",
-    "route": "auto",
-    "route_label": "Automatic (no approval)",
-    "reason": "R1: single independent source (not strong): verify before any block",
-    "rules": [],
-    "requires_approval": false,
-    "executed": false
-   },
-   {
-    "action": "CREATE_CASE",
-    "route": "auto",
-    "route_label": "Automatic (no approval)",
-    "reason": "evidence requested / moderate evidence: open a case (policy 3a)",
-    "rules": [],
-    "requires_approval": false,
-    "executed": false
-   },
-   {
-    "action": "MONITOR_CARD",
-    "route": "auto",
-    "route_label": "Automatic (no approval)",
-    "reason": "R1: watch the card while evidence is pending",
-    "rules": [],
-    "requires_approval": false,
-    "executed": false
-   },
-   {
-    "action": "ESCALATE_TO_ANALYST",
-    "route": "auto",
-    "route_label": "Automatic (no approval)",
-    "reason": "R8: uncertain and exposure > $500",
-    "rules": [],
-    "requires_approval": false,
-    "executed": false
-   }
-  ],
-  "final": [
-   {
     "action": "BLOCK_CARD",
     "route": "L1",
     "route_label": "Level 1 approval (team lead)",
-    "reason": "R2: customer denies the transaction",
+    "reason": "R2: the customer report denies the transaction and validated evidence corroborates it",
     "rules": [],
     "requires_approval": true,
     "executed": false
@@ -659,20 +528,49 @@
     "action": "FILE_REPORT",
     "route": "L2",
     "route_label": "Level 2 approval (fraud manager)",
-    "reason": "R2: exposure > $1,000 or shared-origin / coordinated evidence",
+    "reason": "R2: exposure above $1,000",
     "rules": [],
     "requires_approval": true,
     "executed": false
    }
   ],
-  "what_changed": "the denied_or_unrecognized response changed the recommendation"
+  "final": [
+   {
+    "action": "BLOCK_CARD",
+    "route": "L1",
+    "route_label": "Level 1 approval (team lead)",
+    "reason": "R2: the customer report denies the transaction and validated evidence corroborates it",
+    "rules": [],
+    "requires_approval": true,
+    "executed": false
+   },
+   {
+    "action": "CREATE_CASE",
+    "route": "auto",
+    "route_label": "Automatic (no approval)",
+    "reason": "R2",
+    "rules": [],
+    "requires_approval": false,
+    "executed": false
+   },
+   {
+    "action": "FILE_REPORT",
+    "route": "L2",
+    "route_label": "Level 2 approval (fraud manager)",
+    "reason": "R2: exposure above $1,000",
+    "rules": [],
+    "requires_approval": true,
+    "executed": false
+   }
+  ],
+  "what_changed": "nothing"
  },
  "case": {
   "status": "closed_fraud",
   "verdict": "fraud",
   "pattern": "undocumented",
   "pattern_description": "Repeated same-card ProductCD C purchases of $400-500 within one hour (S07 burst family).",
-  "summary": "Evidence strength: moderate (one validated independent source; 2 independent source(s)); validated evidence: S07 Burst family: ProductCD C, $400-500, >=1 prior same-card txn in 1h; weak context only: S10 Online id_15 = New; simulated response (not real evidence): [SIMULATED] customer validation: denied_or_unrecognized. Investigation uncertainty: high; not available or unresolved: customer response not available yet, no merchant field: policy R7 (recurring merchant) cannot be evaluated; evidence requested (customer_validation), outcome: denied_or_unrecognized. Calibrated probability: not available, because the calibration procedure did not pass its validation gates on the available history (out-of-time validation failed for this evidence class; closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)), so no probability is stated. Recommended (not executed): BLOCK_CARD (L1, R2), CREATE_CASE (auto, R2), FILE_REPORT (L2, R2/R6).",
+  "summary": "Evidence strength: moderate (one validated independent source; 1 validated independent source(s) plus the customer's own statement); validated evidence: S07 Burst family: ProductCD C, $400-500, >=1 prior same-card txn in 1h; weak context only: S10 Online id_15 = New; customer report: the customer states they did not make the transaction (trigger evidence, unverified). Investigation uncertainty: low; not available or unresolved: no merchant field: policy R7 (recurring merchant) cannot be evaluated. Calibrated probability: not available, because the calibration procedure did not pass its validation gates on the available history (out-of-time validation failed for this evidence class; closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)), so no probability is stated. Recommended (not executed): BLOCK_CARD (L1, R2), CREATE_CASE (auto, R2), FILE_REPORT (L2, R2).",
   "affected_txn_ids": [
    "3476602",
    "3476633",
@@ -697,16 +595,16 @@
   ],
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-006",
-  "revision": 2,
-  "graph_write_action": "updated",
+  "revision": 4,
+  "graph_write_action": "unchanged",
   "fraud_probability": null,
   "probability_note": "No probability is stated: the calibration procedure did not pass its validation gates on the available history (out-of-time validation failed for this evidence class; closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)).",
-  "stop_reason": "simulated customer denial settles the question (R2)"
+  "stop_reason": "customer denial corroborated by a validated independent source: policy R2 applies without further verification"
  },
  "sar": {
   "file": true,
-  "reason": "FILE_REPORT recommended (policy section 3a): the activity fits no documented fraud pattern (classified undocumented): repeated same-card purchases within one hour; exposure above $1,000.",
-  "narrative": "Who: the subject is customer C07297, holder of card C07297-K1. What: 4 transaction(s) totalling $1,906.07 across 1 card(s) were identified as one suspected fraud episode, beginning with transaction 3476602. When: the activity ran from 2016-11-21 to 2016-11-21, and the transaction under review occurred on 2016-11-21. Where: the activity was online, with the reviewed transaction billed in billing region 264. How: repeated same-card purchases of $400 to $500 under product code C occurred within one hour. Why suspicious: the activity matches no documented fraud type and consists of repeated same-card purchases of $400 to $500 within one hour; the total exceeds $1,000. Customer contact: the recorded response is simulated for this exercise and is not real customer evidence. Recommended next actions (recommendations only, none executed): BLOCK_CARD, CREATE_CASE, FILE_REPORT. All identifiers and amounts are taken from the bank's transaction records as they stood when the case was opened.",
+  "reason": "FILE_REPORT recommended (policy section 3a): fraud strongly suspected (verdict: fraud); the activity fits no documented fraud pattern (classified undocumented): repeated same-card purchases within one hour; exposure above $1,000.",
+  "narrative": "Who: the subject is customer C07297, holder of card C07297-K1. What: 4 transaction(s) totalling $1,906.07 across 1 card(s) were identified as one suspected fraud episode, beginning with transaction 3476602. When: the activity ran from 2016-11-21 to 2016-11-21, and the transaction under review occurred on 2016-11-21. Where: the activity was online, with the reviewed transaction billed in billing region 264. How: repeated same-card purchases of $400 to $500 under product code C occurred within one hour. Why suspicious: the activity matches no documented fraud type and consists of repeated same-card purchases of $400 to $500 within one hour; the total exceeds $1,000. Recommended next actions (recommendations only, none executed): BLOCK_CARD, CREATE_CASE, FILE_REPORT. All identifiers and amounts are taken from the bank's transaction records as they stood when the case was opened.",
   "subjects": [
    "C07297",
    "C07297-K1"
@@ -720,7 +618,7 @@
  "measured": {
   "tool_calls": 10,
   "tokens": 0,
-  "latency_s": 30.59,
+  "latency_s": 14.33,
   "mode": "deterministic"
  },
  "graph": {

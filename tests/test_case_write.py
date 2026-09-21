@@ -80,7 +80,7 @@ class StructuralValidatorTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.ring = make_record()
-        cls.legit = make_record(ring=False, responder=Forced("verified_legitimate"), trigger="customer_complaint")
+        cls.legit = make_record(ring=False, responder=Forced("passed"))
 
     def bad(self, mutate, needle, base=None):
         r = rec_copy(base or self.ring)
@@ -135,7 +135,7 @@ class StructuralValidatorTests(unittest.TestCase):
         self.bad(lambda r: r["case"]["evidence"].append(dict(r["case"]["evidence"][0])), "S6 duplicate")
 
     def test_simulated_evidence_must_be_marked(self):
-        rec = make_record(ring=False, responder=Forced("verified_legitimate"), trigger="customer_complaint")
+        rec = make_record(ring=False, responder=Forced("passed"))
         sim = [e for e in rec["case"]["evidence"] if e.get("simulated")]
         self.assertEqual(len(sim), 1)
         self.bad(lambda r: [e.update(simulated=False) for e in r["case"]["evidence"]], "S7", rec)
@@ -271,15 +271,15 @@ class WriterTests(unittest.TestCase):
         self.assertEqual(len(io.v), 12)                                      # source facts untouched (same objects as before)
 
     def test_provenance_and_simulated_evidence_marking_are_stored(self):
-        rec = make_record(ring=False, responder=EvidenceSimulator("prov-seed"), trigger="customer_complaint", case="TEST-W2")
+        rec = make_record(ring=False, responder=EvidenceSimulator("cardholder_denies"), trigger="customer_complaint", case="TEST-W2")
         io = FakeIO()
         # the non-ring fake has no CC-1 links etc.; only structure matters here
-        self.writer(io, sim=EvidenceSimulator("prov-seed")).write(rec)
+        self.writer(io, sim=EvidenceSimulator("cardholder_denies")).write(rec)
         ev = json.loads(io.case_v["CASE-TEST-W2"]["evidence_json"])
         prov = ev["provenance"]
         self.assertEqual((prov["source_case_id"], prov["as_of_epoch"], prov["graph_facts_modified"]), ("TEST-W2", AS_OF, False))
         self.assertEqual(prov["content_sha256"], content_hash(rec))
-        self.assertEqual(prov["simulator"]["seed"], "prov-seed")
+        self.assertEqual((prov["simulator"]["scenario"], prov["simulator"]["random"]), ("cardholder_denies", False))
         req = json.loads(io.case_v["CASE-TEST-W2"]["evidence_requests_json"])
         self.assertTrue(all(r["simulated"] for r in req))
         for e in ev["evidence"]:

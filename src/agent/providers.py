@@ -25,6 +25,13 @@ Environment (process environment first, then the git-ignored .env; only these na
   HHG_LLM_TIMEOUT_S      default 90
   HHG_LLM_PARALLEL_TOOL_CALLS   1 (default) | 0 : send OpenAI-compatible parallel_tool_calls on OpenRouter tool-use turns; if the provider rejects it the client retries once without it
   OPENROUTER_HTTP_REFERER / OPENROUTER_APP_TITLE   optional attribution headers
+  OpenAI (explicit only: HHG_LLM_PROVIDER=openai; never selected automatically because it is a PAID provider):
+  OPENAI_API_KEY         key (process environment or .env only; never printed)
+  OPENAI_BASE_URL        default https://api.openai.com/v1
+  HHG_LLM_MODEL          default gpt-5-mini
+  HHG_LLM_REASONING_EFFORT   minimal (default) | low | medium | high   (reasoning tokens are billed as output tokens)
+  HHG_LLM_PRICE_IN_PER_M / HHG_LLM_PRICE_OUT_PER_M   USD per million tokens used ONLY for the spend estimate (defaults: gpt-5-mini 0.25 / 2.00)
+  HHG_LLM_MAX_SPEND_USD  hard cap on the estimated spend of one client (default 0.30): once reached, every further call fails cleanly before it is sent
 """
 import json
 import os
@@ -37,7 +44,7 @@ from pathlib import Path
 from .llm import LLMUnavailable
 
 ROOT = Path(__file__).resolve().parents[2]
-ALLOWED_ENV = re.compile(r"^(HHG_LLM_[A-Z_]+|OPENROUTER_[A-Z_]+|ANTHROPIC_API_KEY)$")
+ALLOWED_ENV = re.compile(r"^(HHG_LLM_[A-Z_]+|OPENROUTER_[A-Z_]+|OPENAI_[A-Z_]+|ANTHROPIC_API_KEY)$")
 DEFAULT_OPENROUTER_MODEL = "nvidia/nemotron-3-super-120b-a12b:free"       # verified free, tool calling + multi-turn (see docs/agent_orchestration.md)
 DEFAULT_BASE = "https://openrouter.ai/api/v1"
 CHARS_PER_TOKEN = 3.5
@@ -151,7 +158,7 @@ class OpenRouterHTTP:
     # ------------------------------------------------------------------------------------------ transport
     def _post(self, body):
         if not self._key:
-            raise self._fail("unknown", None, "OPENROUTER_API_KEY not set", False, None)
+            raise self._fail("unknown", None, getattr(self, "_key_name", "OPENROUTER_API_KEY") + " not set", False, None)
         headers = {"Authorization": "Bearer " + self._key, "Content-Type": "application/json", **self._extra}
         payload = json.dumps(body, ensure_ascii=False).encode("utf-8")
         retried, first_status = False, None
@@ -180,7 +187,7 @@ class OpenRouterHTTP:
         except Exception:
             raise self._fail("provider_malformed_response", status, "response is not JSON", retried, ok_after_retry)
         if status != 200:
-            raise self._fail("provider_rate_limit" if status == 429 else "provider_http_error", status, "OpenRouter rate limited" if status == 429 else "OpenRouter provider error",
+            raise self._fail("provider_rate_limit" if status == 429 else "provider_http_error", status, (getattr(self, "_label", "OpenRouter") + (" rate limited" if status == 429 else " provider error")),
                              retried, ok_after_retry)
         if not isinstance(j, dict) or not j.get("choices"):
             raise self._fail("provider_http_error", status, "error object in a 200 response" if (isinstance(j, dict) and j.get("error")) else "response has no choices",
@@ -286,6 +293,65 @@ class OpenRouterHTTP:
         return {"content": blocks, "stop_reason": stop, "input_tokens": i, "output_tokens": o, "model": models[-1], "models": models, "usage_estimated": est}
 
 
+class OpenAIHTTP(OpenRouterHTTP):
+    """OpenAI chat/completions with function calling (GPT-5 family). Same translation edge as OpenRouterHTTP; differences: paid model (explicit opt-in), `max_completion_tokens`,
+    `reasoning_effort`, no temperature, and a HARD SPEND CAP computed from the usage the API reports. The key is read from the environment / .env only and never printed."""
+    provider = "openai"
+    _key_name, _label = "OPENAI_API_KEY", "OpenAI"
+
+    def __init__(self, model=None, api_key=None, transport=None, timeout=None, base_url=None, sleep=time.sleep, parallel_tool_calls=None, reasoning_effort=None,
+                 price_in=None, price_out=None, max_spend_usd=None):
+        requested = model or "gpt-5-mini"
+        if not re.match(r"^[A-Za-z0-9_.\-]+$", requested):
+            raise LLMUnavailable("invalid OpenAI model id")
+        self._requested = requested
+        if parallel_tool_calls is None:
+            parallel_tool_calls = (env_get("HHG_LLM_PARALLEL_TOOL_CALLS") or "1").lower() not in ("0", "false", "no", "off")
+        self.parallel_requested, self._parallel_disabled = bool(parallel_tool_calls), False
+        self.parallel_events, self._last_sent_parallel = [], False
+        self.model = "openai:" + requested + ("|parallel" if self.parallel_requested else "")
+        self._key = api_key if api_key is not None else env_get("OPENAI_API_KEY")
+        self._base = (base_url or env_get("OPENAI_BASE_URL") or "https://api.openai.com/v1").rstrip("/")
+        self.timeout = int(timeout or (env_get("HHG_LLM_TIMEOUT_S") or 90))
+        self._transport, self._sleep, self._extra = transport or self._urllib, sleep, {}
+        self.models_seen, self.calls = [], 0
+        self.failures, self.retry_events = [], []
+        self.reasoning_effort = (reasoning_effort or env_get("HHG_LLM_REASONING_EFFORT") or "minimal").lower()
+        if self.reasoning_effort not in ("minimal", "low", "medium", "high"):
+            raise LLMUnavailable("invalid reasoning effort")
+        self.price_in = float(price_in if price_in is not None else (env_get("HHG_LLM_PRICE_IN_PER_M") or 0.25))
+        self.price_out = float(price_out if price_out is not None else (env_get("HHG_LLM_PRICE_OUT_PER_M") or 2.00))
+        self.max_spend = float(max_spend_usd if max_spend_usd is not None else (env_get("HHG_LLM_MAX_SPEND_USD") or 0.30))
+        self.usage_in = self.usage_out = self.usage_reasoning = 0
+
+    def __repr__(self):
+        return f"OpenAIHTTP(model={self._requested!r})"
+
+    def spend(self):
+        """Estimated spend in USD from the token usage the API reported (input at price_in, output incl. reasoning at price_out)."""
+        return round(self.usage_in * self.price_in / 1e6 + self.usage_out * self.price_out / 1e6, 6)
+
+    def _body(self, messages, max_tokens, tools=None, tool_choice=None):
+        b = {"model": self._requested, "messages": messages, "max_completion_tokens": int(max_tokens), "reasoning_effort": self.reasoning_effort}
+        if tools:
+            b["tools"] = tools
+            if self.parallel_requested and not self._parallel_disabled:
+                b["parallel_tool_calls"] = True
+        if tool_choice:
+            b["tool_choice"] = tool_choice
+        return b
+
+    def _post(self, body):
+        if self.spend() >= self.max_spend:                                    # checked BEFORE the request: the cap can only be exceeded by the last completed call
+            raise self._fail("token_budget", None, f"spend cap reached (${self.spend():.4f} of ${self.max_spend:.2f})", False, None)
+        j = super()._post(body)
+        u = j.get("usage") or {}
+        self.usage_in += int(u.get("prompt_tokens") or 0)
+        self.usage_out += int(u.get("completion_tokens") or 0)
+        self.usage_reasoning += int(((u.get("completion_tokens_details") or {}).get("reasoning_tokens")) or 0)
+        return j
+
+
 def make_client(environ=None, env_path=None, transport=None):
     """Provider factory. Returns a client or None (no key: the caller runs the deterministic pipeline). Raises LLMUnavailable for a forbidden (paid) OpenRouter model."""
     g = lambda n: env_get(n, env_path, environ)   # noqa: E731
@@ -298,6 +364,10 @@ def make_client(environ=None, env_path=None, transport=None):
         return OpenRouterHTTP(model=g("HHG_LLM_MODEL") or None, api_key=g("OPENROUTER_API_KEY"), transport=transport, timeout=int(g("HHG_LLM_TIMEOUT_S") or 90),
                               base_url=g("OPENROUTER_BASE_URL") or None,
                               parallel_tool_calls=(g("HHG_LLM_PARALLEL_TOOL_CALLS") or "1").lower() not in ("0", "false", "no", "off"))
+    if provider == "openai":
+        if not g("OPENAI_API_KEY"):
+            return None
+        return OpenAIHTTP(model=g("HHG_LLM_MODEL") or None, api_key=g("OPENAI_API_KEY"), transport=transport, timeout=int(g("HHG_LLM_TIMEOUT_S") or 90), base_url=g("OPENAI_BASE_URL") or None)
     if provider == "anthropic":
         from .llm import AnthropicHTTP
         if not g("ANTHROPIC_API_KEY"):

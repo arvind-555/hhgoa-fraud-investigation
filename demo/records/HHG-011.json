@@ -1121,6 +1121,15 @@
     "entity_ids": [],
     "evidence_id": "E100",
     "rating": "CONTEXT"
+   },
+   {
+    "claim": "policy text consulted (policy:R4): When: No customer reply within 24 hours. Actions: MONITOR_CARD; DECLINE_TRANSACTION for pending authorizations; escalate if exposure > $500. Requires: a custome",
+    "source": "document",
+    "ref": "document:policy:R4",
+    "simulated": false,
+    "entity_ids": [],
+    "evidence_id": "E101",
+    "rating": "CONTEXT"
    }
   ],
   "similar_prior_cases": [
@@ -1135,7 +1144,7 @@
    "CC-4589",
    "CC-0009"
   ],
-  "summary": "Evidence strength: weak (only weak context signals (not independent proof); 1 independent source(s)); weak context only: S10 Online id_15 = New [E1]; S13 Online billing region (addr1) missing [E2]. Investigation uncertainty: medium; not available or unresolved: customer response not available yet, no merchant field: policy R7 (recurring merchant) cannot be evaluated, card history truncated at the row limit; evidence requested (customer_validation), outcome: no_response. Calibrated probability: not available, because the calibration procedure did not pass its validation gates on the available history (out-of-time validation failed for this evidence class; closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)), so no probability is stated. Recommended (not executed): STEP_UP_AUTH (auto, R1), MONITOR_CARD (auto, R1), CREATE_CASE (auto, 3a).",
+  "summary": "Evidence strength: weak (only weak context signals (not independent proof); 0 validated independent source(s) plus the customer's own statement); weak context only: S10 Online id_15 = New [E1]; S13 Online billing region (addr1) missing [E2]; customer report: the customer states they did not make the transaction (trigger evidence, unverified). Investigation uncertainty: medium; not available or unresolved: no merchant field: policy R7 (recurring merchant) cannot be evaluated, card history truncated at the row limit, the customer / step-up reply was not received within 24 hours (simulated assumption of absence, policy R4); evidence requested (customer_validation), outcome: no_response. Calibrated probability: not available, because the calibration procedure did not pass its validation gates on the available history (out-of-time validation failed for this evidence class; closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)), so no probability is stated. Recommended (not executed): MONITOR_CARD (auto, R4), DECLINE_TRANSACTION (L1, R4), CREATE_CASE (auto, 3a).",
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-011"
  },
@@ -1143,7 +1152,7 @@
   {
    "type": "customer_validation",
    "asked_after_step": 9,
-   "assumed_response": "[SIMULATED] No response received; evidence remains pending.",
+   "assumed_response": "[SIMULATED] No reply received within 24 hours (the task supplies no replies; this is an assumption of absence, not customer testimony).",
    "simulated": true,
    "request_id": "HHG-011:REQ1",
    "outcome": "no_response"
@@ -1152,9 +1161,9 @@
  "next_best_actions": {
   "initial": [
    {
-    "action": "STEP_UP_AUTH",
+    "action": "VERIFY_WITH_CUSTOMER",
     "route": "auto",
-    "reason": "R1: only weak/context signals or the model score; verify before any block",
+    "reason": "R1: the customer report is unverified and graph evidence is weak: verify before any block",
     "rules": [
      "R1"
     ],
@@ -1164,7 +1173,7 @@
    {
     "action": "MONITOR_CARD",
     "route": "auto",
-    "reason": "watch the card while evidence is pending",
+    "reason": "watch the card while the dispute is verified",
     "rules": [
      "R1"
     ],
@@ -1184,24 +1193,24 @@
   ],
   "final": [
    {
-    "action": "STEP_UP_AUTH",
+    "action": "MONITOR_CARD",
     "route": "auto",
-    "reason": "R1: only weak/context signals or the model score; verify before any block",
+    "reason": "R4: no reply within 24 h",
     "rules": [
-     "R1"
+     "R4"
     ],
     "executed": false,
     "requires_approval": false
    },
    {
-    "action": "MONITOR_CARD",
-    "route": "auto",
-    "reason": "watch the card while evidence is pending",
+    "action": "DECLINE_TRANSACTION",
+    "route": "L1",
+    "reason": "R4: pending authorisations (if any)",
     "rules": [
-     "R1"
+     "R4"
     ],
     "executed": false,
-    "requires_approval": false
+    "requires_approval": true
    },
    {
     "action": "CREATE_CASE",
@@ -1214,11 +1223,11 @@
     "requires_approval": false
    }
   ],
-  "what_changed": "nothing"
+  "what_changed": "no reply within 24 h (simulated assumption): policy R4 actions applied"
  },
  "sar": {
   "file": false,
-  "reason": "No report: policy section 3a requires fraud confirmed or strongly suspected AND (exposure above $1,000, a shared device/region cluster or another customer's fraud, or a coordinated/undocumented pattern); this case does not meet it (final actions: CREATE_CASE, MONITOR_CARD, STEP_UP_AUTH).",
+  "reason": "No report: policy section 3a requires fraud to be confirmed or strongly suspected; the verdict is uncertain (evidence strength: weak), so a report is not warranted on the evidence available.",
   "narrative": "",
   "subjects": [],
   "total_amount_usd": 0,
@@ -1324,9 +1333,9 @@
   "independent_sources": 1,
   "conflicts": [],
   "missing": [
-   "customer response not available yet",
    "no merchant field: policy R7 (recurring merchant) cannot be evaluated",
-   "card history truncated at the row limit"
+   "card history truncated at the row limit",
+   "the customer / step-up reply was not received within 24 hours (simulated assumption of absence, policy R4)"
   ],
   "level": "medium",
   "needs_more_evidence": true,
@@ -1346,18 +1355,26 @@
    ]
   },
   "reasons": [
-   "tier1-5 independent sources: 0",
-   "low-context sources: 1",
+   "validated independent sources (tier 1-5): 0",
+   "customer statement (immutable trigger evidence): yes",
+   "pattern-defining characteristics (not counted as corroboration): none",
+   "context signals (weak, not independent proof): S10, S13",
    "model alert band: low"
-  ]
+  ],
+  "pattern_defining": [],
+  "corroborating": [
+   "S10",
+   "S13"
+  ],
+  "customer_statement": "denial"
  },
- "stop_reason": "requested evidence is pending (no simulated response); recommendations stand until it arrives",
+ "stop_reason": "no customer reply within 24 h (simulated assumption of absence, R4); the evidence is insufficient to conclude, so the verdict stays uncertain",
  "recommendation_only": true,
  "graph_write": {
   "graph_case_id": "CASE-HHG-011",
-  "revision": 1,
+  "revision": 3,
   "action": "unchanged",
-  "content_sha256": "b91992ee4afc17610f48c2890a99e024f9a39c62e277b91533c4a3843e9a4130",
+  "content_sha256": "2c4b8b26ab6a6ad1ff22eb7b6eb7b951eb2e55e080d79dfa204f401a5313d476",
   "written_to_graph": true
  },
  "tool_calls": 10,
@@ -1386,19 +1403,19 @@
   "tokens": 0,
   "calls": 0
  },
- "latency_s": 15.0,
+ "latency_s": 12.6,
  "trace": [
   {
    "step": 1,
    "state": "INITIAL_INVESTIGATION",
-   "ms": 9427.6,
+   "ms": 7144.3,
    "tool_calls": [
     "get_transaction_context",
     "get_customer_history",
     "get_card_history",
+    "find_shared_devices",
     "find_prior_cases",
     "detect_fraud_patterns",
-    "find_shared_devices",
     "find_connected_entities",
     "find_similar_cases",
     "get_policy_context"
@@ -1408,7 +1425,7 @@
   {
    "step": 2,
    "state": "EVIDENCE_SYNTHESIS",
-   "ms": 1.9,
+   "ms": 1.5,
    "tool_calls": [],
    "note": ""
   },
@@ -1422,18 +1439,18 @@
   {
    "step": 4,
    "state": "ADDITIONAL_EVIDENCE_REQUEST",
-   "ms": 0.1,
+   "ms": 0.0,
    "tool_calls": [],
    "note": "outcome=no_response (simulated)"
   },
   {
    "step": 5,
    "state": "NEXT_BEST_ACTION",
-   "ms": 1268.2,
+   "ms": 1532.6,
    "tool_calls": [
     "retrieve_policy"
    ],
-   "note": "initial=['STEP_UP_AUTH', 'MONITOR_CARD', 'CREATE_CASE'] final=['STEP_UP_AUTH', 'MONITOR_CARD', 'CREATE_CASE']"
+   "note": "initial=['VERIFY_WITH_CUSTOMER', 'MONITOR_CARD', 'CREATE_CASE'] final=['MONITOR_CARD', 'DECLINE_TRANSACTION', 'CREATE_CASE']"
   },
   {
    "step": 6,
@@ -1445,7 +1462,7 @@
   {
    "step": 7,
    "state": "CASE_WRITE",
-   "ms": 4301.0,
+   "ms": 3917.2,
    "tool_calls": [],
    "note": ""
   }
@@ -1454,7 +1471,7 @@
   "tool_calls": 10,
   "graph_queries_executed": 9,
   "cache_hits": 10,
-  "tool_ms_total": 24313.8,
-  "tool_ms_max": 5571.6
+  "tool_ms_total": 19915.0,
+  "tool_ms_max": 3809.7
  }
 }

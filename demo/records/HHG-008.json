@@ -1,8 +1,8 @@
 {
  "case_id": "HHG-008",
  "case": {
-  "status": "closed_fraud",
-  "verdict": "fraud",
+  "status": "open",
+  "verdict": "uncertain",
   "fraud_probability": null,
   "probability_calibrated": false,
   "probability_source": "unavailable",
@@ -768,21 +768,12 @@
     "rating": "CONTEXT"
    },
    {
-    "claim": "[SIMULATED] customer validation: denied_or_unrecognized",
-    "source": "customer",
-    "ref": "evidence_simulator",
-    "simulated": true,
-    "entity_ids": [],
-    "evidence_id": "E68",
-    "rating": "HIGH"
-   },
-   {
     "claim": "policy text consulted (policy:3a): A case is not a report. Two different things, and the agent produces both.\n\nA case (CREATE_CASE) is the bank's internal record of an investigation. Open one whe",
     "source": "document",
     "ref": "document:policy:3a",
     "simulated": false,
     "entity_ids": [],
-    "evidence_id": "E69",
+    "evidence_id": "E68",
     "rating": "CONTEXT"
    },
    {
@@ -791,16 +782,16 @@
     "ref": "document:policy:R1",
     "simulated": false,
     "entity_ids": [],
-    "evidence_id": "E70",
+    "evidence_id": "E69",
     "rating": "CONTEXT"
    },
    {
-    "claim": "policy text consulted (policy:R2): When: The customer denies the transaction. Actions: BLOCK_CARD; CREATE_CASE; FILE_REPORT if exposure > $1,000 or the case connects to a shared device profile or",
+    "claim": "policy text consulted (policy:R4): When: No customer reply within 24 hours. Actions: MONITOR_CARD; DECLINE_TRANSACTION for pending authorizations; escalate if exposure > $500. Requires: a custome",
     "source": "document",
-    "ref": "document:policy:R2",
+    "ref": "document:policy:R4",
     "simulated": false,
     "entity_ids": [],
-    "evidence_id": "E71",
+    "evidence_id": "E70",
     "rating": "CONTEXT"
    }
   ],
@@ -816,7 +807,7 @@
    "CC-2499",
    "CC-2775"
   ],
-  "summary": "Evidence strength: weak (only weak context signals (not independent proof); 1 independent source(s)); weak context only: S05 Repeat victim: visible prior confirmed case on the card or customer [E1]; S13 Online billing region (addr1) missing [E2]; simulated response (not real evidence): [SIMULATED] customer validation: denied_or_unrecognized [E68]. Investigation uncertainty: medium; not available or unresolved: customer response not available yet, no merchant field: policy R7 (recurring merchant) cannot be evaluated; evidence requested (customer_validation), outcome: denied_or_unrecognized. Calibrated probability: not available, because the calibration procedure did not pass its validation gates on the available history (out-of-time validation failed for this evidence class; closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)), so no probability is stated. Recommended (not executed): BLOCK_CARD (L1, R2), CREATE_CASE (auto, R2).",
+  "summary": "Evidence strength: weak (only weak context signals (not independent proof); 0 validated independent source(s) plus the customer's own statement); weak context only: S05 Repeat victim: visible prior confirmed case on the card or customer [E1]; S13 Online billing region (addr1) missing [E2]; customer report: the customer states they did not make the transaction (trigger evidence, unverified). Investigation uncertainty: medium; not available or unresolved: no merchant field: policy R7 (recurring merchant) cannot be evaluated, the customer / step-up reply was not received within 24 hours (simulated assumption of absence, policy R4); evidence requested (customer_validation), outcome: no_response. Calibrated probability: not available, because the calibration procedure did not pass its validation gates on the available history (out-of-time validation failed for this evidence class; closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)), so no probability is stated. Recommended (not executed): MONITOR_CARD (auto, R4), DECLINE_TRANSACTION (L1, R4), CREATE_CASE (auto, 3a).",
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-008"
  },
@@ -824,18 +815,18 @@
   {
    "type": "customer_validation",
    "asked_after_step": 9,
-   "assumed_response": "[SIMULATED] Customer states they did not make the transaction or do not recognise it.",
+   "assumed_response": "[SIMULATED] No reply received within 24 hours (the task supplies no replies; this is an assumption of absence, not customer testimony).",
    "simulated": true,
    "request_id": "HHG-008:REQ1",
-   "outcome": "denied_or_unrecognized"
+   "outcome": "no_response"
   }
  ],
  "next_best_actions": {
   "initial": [
    {
-    "action": "STEP_UP_AUTH",
+    "action": "VERIFY_WITH_CUSTOMER",
     "route": "auto",
-    "reason": "R1: only weak/context signals or the model score; verify before any block",
+    "reason": "R1: the customer report is unverified and graph evidence is weak: verify before any block",
     "rules": [
      "R1"
     ],
@@ -845,7 +836,7 @@
    {
     "action": "MONITOR_CARD",
     "route": "auto",
-    "reason": "watch the card while evidence is pending",
+    "reason": "watch the card while the dispute is verified",
     "rules": [
      "R1"
     ],
@@ -865,11 +856,21 @@
   ],
   "final": [
    {
-    "action": "BLOCK_CARD",
-    "route": "L1",
-    "reason": "R2: customer denies the transaction",
+    "action": "MONITOR_CARD",
+    "route": "auto",
+    "reason": "R4: no reply within 24 h",
     "rules": [
-     "R2"
+     "R4"
+    ],
+    "executed": false,
+    "requires_approval": false
+   },
+   {
+    "action": "DECLINE_TRANSACTION",
+    "route": "L1",
+    "reason": "R4: pending authorisations (if any)",
+    "rules": [
+     "R4"
     ],
     "executed": false,
     "requires_approval": true
@@ -877,19 +878,19 @@
    {
     "action": "CREATE_CASE",
     "route": "auto",
-    "reason": "R2",
+    "reason": "customer dispute always opens a case (3a)",
     "rules": [
-     "R2"
+     "3a"
     ],
     "executed": false,
     "requires_approval": false
    }
   ],
-  "what_changed": "the denied_or_unrecognized response changed the recommendation"
+  "what_changed": "no reply within 24 h (simulated assumption): policy R4 actions applied"
  },
  "sar": {
   "file": false,
-  "reason": "No report: policy section 3a requires fraud confirmed or strongly suspected AND (exposure above $1,000, a shared device/region cluster or another customer's fraud, or a coordinated/undocumented pattern); this case does not meet it (final actions: BLOCK_CARD, CREATE_CASE).",
+  "reason": "No report: policy section 3a requires fraud to be confirmed or strongly suspected; the verdict is uncertain (evidence strength: weak), so a report is not warranted on the evidence available.",
   "narrative": "",
   "subjects": [],
   "total_amount_usd": 0,
@@ -989,16 +990,14 @@
   "complete": true,
   "other_card_exposure_usd": 0
  },
- "simulated_evidence_ids": [
-  "E68"
- ],
+ "simulated_evidence_ids": [],
  "uncertainty": {
   "evidence_strength": "weak",
   "independent_sources": 1,
   "conflicts": [],
   "missing": [
-   "customer response not available yet",
-   "no merchant field: policy R7 (recurring merchant) cannot be evaluated"
+   "no merchant field: policy R7 (recurring merchant) cannot be evaluated",
+   "the customer / step-up reply was not received within 24 hours (simulated assumption of absence, policy R4)"
   ],
   "level": "medium",
   "needs_more_evidence": true,
@@ -1018,18 +1017,26 @@
    ]
   },
   "reasons": [
-   "tier1-5 independent sources: 0",
-   "low-context sources: 2",
+   "validated independent sources (tier 1-5): 0",
+   "customer statement (immutable trigger evidence): yes",
+   "pattern-defining characteristics (not counted as corroboration): none",
+   "context signals (weak, not independent proof): S05, S13",
    "model alert band: low"
-  ]
+  ],
+  "pattern_defining": [],
+  "corroborating": [
+   "S05",
+   "S13"
+  ],
+  "customer_statement": "denial"
  },
- "stop_reason": "simulated customer denial settles the question (R2)",
+ "stop_reason": "no customer reply within 24 h (simulated assumption of absence, R4); the evidence is insufficient to conclude, so the verdict stays uncertain",
  "recommendation_only": true,
  "graph_write": {
   "graph_case_id": "CASE-HHG-008",
-  "revision": 1,
+  "revision": 3,
   "action": "unchanged",
-  "content_sha256": "4275fd720c6d01838b7225ea0ee72a9665d73a6e866e630122e14891ba398be7",
+  "content_sha256": "56653ac5b488599319db3ab7fa697c0f7dd6a486105541261707d30177221795",
   "written_to_graph": true
  },
  "tool_calls": 10,
@@ -1058,12 +1065,12 @@
   "tokens": 0,
   "calls": 0
  },
- "latency_s": 14.25,
+ "latency_s": 13.25,
  "trace": [
   {
    "step": 1,
    "state": "INITIAL_INVESTIGATION",
-   "ms": 9027.2,
+   "ms": 7297.9,
    "tool_calls": [
     "get_transaction_context",
     "get_customer_history",
@@ -1080,7 +1087,7 @@
   {
    "step": 2,
    "state": "EVIDENCE_SYNTHESIS",
-   "ms": 0.7,
+   "ms": 1.3,
    "tool_calls": [],
    "note": ""
   },
@@ -1096,28 +1103,28 @@
    "state": "ADDITIONAL_EVIDENCE_REQUEST",
    "ms": 0.0,
    "tool_calls": [],
-   "note": "outcome=denied_or_unrecognized (simulated)"
+   "note": "outcome=no_response (simulated)"
   },
   {
    "step": 5,
    "state": "NEXT_BEST_ACTION",
-   "ms": 1455.4,
+   "ms": 1594.3,
    "tool_calls": [
     "retrieve_policy"
    ],
-   "note": "initial=['STEP_UP_AUTH', 'MONITOR_CARD', 'CREATE_CASE'] final=['BLOCK_CARD', 'CREATE_CASE']"
+   "note": "initial=['VERIFY_WITH_CUSTOMER', 'MONITOR_CARD', 'CREATE_CASE'] final=['MONITOR_CARD', 'DECLINE_TRANSACTION', 'CREATE_CASE']"
   },
   {
    "step": 6,
    "state": "EXPLANATION",
-   "ms": 1.7,
+   "ms": 2.0,
    "tool_calls": [],
    "note": ""
   },
   {
    "step": 7,
    "state": "CASE_WRITE",
-   "ms": 3766.2,
+   "ms": 4355.5,
    "tool_calls": [],
    "note": ""
   }
@@ -1126,7 +1133,7 @@
   "tool_calls": 10,
   "graph_queries_executed": 9,
   "cache_hits": 10,
-  "tool_ms_total": 20450.8,
-  "tool_ms_max": 5500.2
+  "tool_ms_total": 18879.6,
+  "tool_ms_max": 4129.4
  }
 }

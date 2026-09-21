@@ -96,13 +96,15 @@ class ServiceTests(unittest.TestCase):
     def test_hhg014_showcase_flow(self):
         d = self.svc.get_case("HHG-014")
         labels = [e["label"] for e in d["activity"]["events"]]
-        for expected in ("Investigation triggered", "Shared-device analysis", "Ring expansion", "Pattern detection", "Uncertainty assessed", "Step-up authentication requested",
+        for expected in ("Investigation triggered", "Shared-device analysis", "Ring expansion", "Pattern detection", "Uncertainty assessed", "Customer verification requested",
                          "Next-best action selected", "Case written to TigerGraph"):
             self.assertIn(expected, labels)
         self.assertLess(labels.index("Shared-device analysis"), labels.index("Ring expansion"))
         self.assertLess(labels.index("Uncertainty assessed"), labels.index("Next-best action selected"))
         self.assertEqual(d["case"]["affected_txn_ids"].__len__(), 26)
-        self.assertEqual([a["action"] for a in d["actions"]["final"]], ["ESCALATE_TO_ANALYST"])
+        fin = [a["action"] for a in d["actions"]["final"]]
+        self.assertTrue({"CREATE_CASE", "FILE_REPORT", "MONITOR_CONNECTED_CARDS", "ESCALATE_TO_ANALYST"} <= set(fin), fin)     # R6/R9/3a preserved
+        self.assertTrue(d["sar"]["file"])
         kinds = {n["kind"] for n in d["graph"]["nodes"]}
         self.assertTrue({"case", "customer", "card", "txn", "device", "cluster", "prior"} <= kinds)
         self.assertTrue(any(e.get("ring") for e in d["graph"]["edges"]))
@@ -137,8 +139,8 @@ class ApiTests(unittest.TestCase):
         s, rows = jget(self.app, "/api/cases")
         self.assertEqual((s, len(rows)), (200, 20))
         s, o = jget(self.app, "/api/overview")
-        self.assertEqual((o["total"], o["written_to_graph"], o["sar_filed"], o["showcase"]), (20, 20, 1, "HHG-014"))
-        self.assertEqual(o["verdicts"], {"fraud": 5, "legitimate": 9, "uncertain": 6})
+        self.assertEqual((o["total"], o["written_to_graph"], o["sar_filed"], o["showcase"]), (20, 20, 2, "HHG-014"))
+        self.assertEqual(o["verdicts"], {"fraud": 2, "uncertain": 18})
 
     def test_every_case_endpoint_serves(self):
         for i in range(1, 21):

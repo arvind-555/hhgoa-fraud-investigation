@@ -17,7 +17,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from fraud_tools.guards import LeakError, assert_visible  # noqa: E402
 from fraud_tools.tools import InvestigationSession  # noqa: E402
 
-from .permissions import PermissionDenied, validate_call  # noqa: E402
+from .permissions import PermissionDenied, canonical_key, validate_call  # noqa: E402
 
 STRIP_KEYS = {"as_of", "as_of_epoch", "max_epoch_seen", "latency_ms", "risk_score", "snap_class", "snap_customers", "snap_region_class", "n_cards", "queries_used"}
 RENAME = {"seconds_before_as_of": "seconds_since_transaction", "next_txn_visible_at_as_of": "next_txn_visible_now"}   # the agent sees "now", never the term as_of
@@ -73,7 +73,7 @@ class ToolGateway:
     # ------------------------------------------------------------------ calling
     def call(self, tool, args=None, state=None):
         args = validate_call(tool, args, state)
-        key = (tool, tuple(sorted((k, tuple(v) if isinstance(v, list) else v) for k, v in args.items())))
+        key = canonical_key(tool, args)              # equivalent calls (argument order, defaults passed explicitly, list order) share one result; different queries never do
         with self._lock:
             if key in self._memo:
                 return self._memo[key]              # identical logical call in the same case: no second round trip
@@ -95,7 +95,7 @@ class ToolGateway:
     def has_result(self, tool, args=None):
         """True if this exact (validated) call was already made in this case (a repeat costs nothing)."""
         args = validate_call(tool, args)
-        key = (tool, tuple(sorted((k, tuple(v) if isinstance(v, list) else v) for k, v in args.items())))
+        key = canonical_key(tool, args)
         with self._lock:
             return key in self._memo
 

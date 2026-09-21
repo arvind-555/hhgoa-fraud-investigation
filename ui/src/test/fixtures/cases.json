@@ -6,23 +6,31 @@
   "customer_id": "C12382",
   "card_id": "C12382-K1",
   "pattern": "none",
-  "verdict": "legitimate",
-  "status": "closed_legitimate",
+  "verdict": "uncertain",
+  "status": "open",
   "evidence_strength": "weak",
   "final_actions": [
    {
-    "action": "CLOSE_NO_FRAUD",
+    "action": "MONITOR_CARD",
+    "route": "auto"
+   },
+   {
+    "action": "DECLINE_TRANSACTION",
+    "route": "L1"
+   },
+   {
+    "action": "CREATE_CASE",
     "route": "auto"
    }
   ],
-  "top_action": "CLOSE_NO_FRAUD",
-  "exposure_usd": 0,
-  "affected_txn_count": 0,
+  "top_action": "MONITOR_CARD",
+  "exposure_usd": 77.07,
+  "affected_txn_count": 1,
   "sar_filed": false,
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-001",
-  "revision": 1,
-  "simulated_evidence": true,
+  "revision": 3,
+  "simulated_evidence": false,
   "requested": [
    "customer_validation"
   ]
@@ -34,27 +42,31 @@
   "customer_id": "C11891",
   "card_id": "C11891-K1",
   "pattern": "card_not_present_fraud",
-  "verdict": "legitimate",
-  "status": "closed_legitimate",
+  "verdict": "uncertain",
+  "status": "open",
   "evidence_strength": "moderate",
   "final_actions": [
    {
-    "action": "ALLOW_TRANSACTION",
+    "action": "MONITOR_CARD",
     "route": "auto"
    },
    {
-    "action": "MONITOR_CARD",
+    "action": "DECLINE_TRANSACTION",
+    "route": "L1"
+   },
+   {
+    "action": "CREATE_CASE",
     "route": "auto"
    }
   ],
-  "top_action": "ALLOW_TRANSACTION",
-  "exposure_usd": 0,
-  "affected_txn_count": 0,
+  "top_action": "MONITOR_CARD",
+  "exposure_usd": 292.36,
+  "affected_txn_count": 1,
   "sar_filed": false,
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-002",
-  "revision": 1,
-  "simulated_evidence": true,
+  "revision": 3,
+  "simulated_evidence": false,
   "requested": [
    "step_up_auth"
   ]
@@ -66,23 +78,31 @@
   "customer_id": "C08623",
   "card_id": "C08623-K2",
   "pattern": "none",
-  "verdict": "legitimate",
-  "status": "closed_legitimate",
+  "verdict": "uncertain",
+  "status": "open",
   "evidence_strength": "weak",
   "final_actions": [
    {
-    "action": "CLOSE_NO_FRAUD",
+    "action": "MONITOR_CARD",
+    "route": "auto"
+   },
+   {
+    "action": "DECLINE_TRANSACTION",
+    "route": "L1"
+   },
+   {
+    "action": "CREATE_CASE",
     "route": "auto"
    }
   ],
-  "top_action": "CLOSE_NO_FRAUD",
-  "exposure_usd": 0,
-  "affected_txn_count": 0,
+  "top_action": "MONITOR_CARD",
+  "exposure_usd": 49.0,
+  "affected_txn_count": 1,
   "sar_filed": false,
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-003",
-  "revision": 1,
-  "simulated_evidence": true,
+  "revision": 3,
+  "simulated_evidence": false,
   "requested": [
    "customer_validation"
   ]
@@ -99,25 +119,25 @@
   "evidence_strength": "weak",
   "final_actions": [
    {
-    "action": "STEP_UP_AUTH",
+    "action": "MONITOR_CARD",
     "route": "auto"
    },
    {
-    "action": "MONITOR_CARD",
-    "route": "auto"
+    "action": "DECLINE_TRANSACTION",
+    "route": "L1"
    },
    {
     "action": "CREATE_CASE",
     "route": "auto"
    }
   ],
-  "top_action": "STEP_UP_AUTH",
+  "top_action": "MONITOR_CARD",
   "exposure_usd": 128.33,
   "affected_txn_count": 1,
   "sar_filed": false,
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-004",
-  "revision": 1,
+  "revision": 3,
   "simulated_evidence": false,
   "requested": [
    "customer_validation"
@@ -130,27 +150,31 @@
   "customer_id": "C02923",
   "card_id": "C02923-K1",
   "pattern": "none",
-  "verdict": "legitimate",
-  "status": "closed_legitimate",
+  "verdict": "uncertain",
+  "status": "open",
   "evidence_strength": "weak",
   "final_actions": [
    {
-    "action": "ALLOW_TRANSACTION",
+    "action": "MONITOR_CARD",
     "route": "auto"
    },
    {
-    "action": "MONITOR_CARD",
+    "action": "DECLINE_TRANSACTION",
+    "route": "L1"
+   },
+   {
+    "action": "CREATE_CASE",
     "route": "auto"
    }
   ],
-  "top_action": "ALLOW_TRANSACTION",
-  "exposure_usd": 0,
-  "affected_txn_count": 0,
+  "top_action": "MONITOR_CARD",
+  "exposure_usd": 100.07,
+  "affected_txn_count": 1,
   "sar_filed": false,
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-005",
-  "revision": 1,
-  "simulated_evidence": true,
+  "revision": 3,
+  "simulated_evidence": false,
   "requested": [
    "step_up_auth"
   ]
@@ -185,11 +209,9 @@
   "sar_filed": true,
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-006",
-  "revision": 2,
-  "simulated_evidence": true,
-  "requested": [
-   "customer_validation"
-  ]
+  "revision": 4,
+  "simulated_evidence": false,
+  "requested": []
  },
  {
   "case_id": "HHG-007",
@@ -203,21 +225,25 @@
   "evidence_strength": "weak",
   "final_actions": [
    {
-    "action": "VERIFY_WITH_CUSTOMER",
+    "action": "MONITOR_CARD",
     "route": "auto"
    },
    {
-    "action": "MONITOR_CARD",
+    "action": "DECLINE_TRANSACTION",
+    "route": "L1"
+   },
+   {
+    "action": "CREATE_CASE",
     "route": "auto"
    }
   ],
-  "top_action": "VERIFY_WITH_CUSTOMER",
+  "top_action": "MONITOR_CARD",
   "exposure_usd": 111.92,
   "affected_txn_count": 1,
   "sar_filed": false,
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-007",
-  "revision": 1,
+  "revision": 3,
   "simulated_evidence": false,
   "requested": [
    "customer_validation"
@@ -230,12 +256,16 @@
   "customer_id": "C13171",
   "card_id": "C13171-K2",
   "pattern": "none",
-  "verdict": "fraud",
-  "status": "closed_fraud",
+  "verdict": "uncertain",
+  "status": "open",
   "evidence_strength": "weak",
   "final_actions": [
    {
-    "action": "BLOCK_CARD",
+    "action": "MONITOR_CARD",
+    "route": "auto"
+   },
+   {
+    "action": "DECLINE_TRANSACTION",
     "route": "L1"
    },
    {
@@ -243,14 +273,14 @@
     "route": "auto"
    }
   ],
-  "top_action": "BLOCK_CARD",
+  "top_action": "MONITOR_CARD",
   "exposure_usd": 55.68,
   "affected_txn_count": 1,
   "sar_filed": false,
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-008",
-  "revision": 1,
-  "simulated_evidence": true,
+  "revision": 3,
+  "simulated_evidence": false,
   "requested": [
    "customer_validation"
   ]
@@ -262,23 +292,31 @@
   "customer_id": "C08299",
   "card_id": "C08299-K1",
   "pattern": "none",
-  "verdict": "legitimate",
-  "status": "closed_legitimate",
+  "verdict": "uncertain",
+  "status": "open",
   "evidence_strength": "none",
   "final_actions": [
    {
-    "action": "CLOSE_NO_FRAUD",
+    "action": "MONITOR_CARD",
+    "route": "auto"
+   },
+   {
+    "action": "DECLINE_TRANSACTION",
+    "route": "L1"
+   },
+   {
+    "action": "CREATE_CASE",
     "route": "auto"
    }
   ],
-  "top_action": "CLOSE_NO_FRAUD",
-  "exposure_usd": 0,
-  "affected_txn_count": 0,
+  "top_action": "MONITOR_CARD",
+  "exposure_usd": 30.02,
+  "affected_txn_count": 1,
   "sar_filed": false,
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-009",
-  "revision": 1,
-  "simulated_evidence": true,
+  "revision": 3,
+  "simulated_evidence": false,
   "requested": [
    "customer_validation"
   ]
@@ -295,34 +333,30 @@
   "evidence_strength": "moderate",
   "final_actions": [
    {
-    "action": "DECLINE_TRANSACTION",
-    "route": "L1"
-   },
-   {
-    "action": "CREATE_CASE",
-    "route": "auto"
-   },
-   {
-    "action": "VERIFY_WITH_CUSTOMER",
-    "route": "auto"
-   },
-   {
     "action": "MONITOR_CARD",
     "route": "auto"
    },
    {
+    "action": "DECLINE_TRANSACTION",
+    "route": "L1"
+   },
+   {
     "action": "ESCALATE_TO_ANALYST",
+    "route": "auto"
+   },
+   {
+    "action": "CREATE_CASE",
     "route": "auto"
    }
   ],
-  "top_action": "DECLINE_TRANSACTION",
+  "top_action": "MONITOR_CARD",
   "exposure_usd": 1000.03,
   "affected_txn_count": 1,
   "sar_filed": false,
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-010",
-  "revision": 1,
-  "simulated_evidence": true,
+  "revision": 3,
+  "simulated_evidence": false,
   "requested": [
    "step_up_auth"
   ]
@@ -339,25 +373,25 @@
   "evidence_strength": "weak",
   "final_actions": [
    {
-    "action": "STEP_UP_AUTH",
+    "action": "MONITOR_CARD",
     "route": "auto"
    },
    {
-    "action": "MONITOR_CARD",
-    "route": "auto"
+    "action": "DECLINE_TRANSACTION",
+    "route": "L1"
    },
    {
     "action": "CREATE_CASE",
     "route": "auto"
    }
   ],
-  "top_action": "STEP_UP_AUTH",
+  "top_action": "MONITOR_CARD",
   "exposure_usd": 131.3,
   "affected_txn_count": 1,
   "sar_filed": false,
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-011",
-  "revision": 1,
+  "revision": 3,
   "simulated_evidence": false,
   "requested": [
    "customer_validation"
@@ -370,12 +404,16 @@
   "customer_id": "C05876",
   "card_id": "C05876-K2",
   "pattern": "none",
-  "verdict": "fraud",
-  "status": "closed_fraud",
+  "verdict": "uncertain",
+  "status": "open",
   "evidence_strength": "weak",
   "final_actions": [
    {
-    "action": "BLOCK_CARD",
+    "action": "MONITOR_CARD",
+    "route": "auto"
+   },
+   {
+    "action": "DECLINE_TRANSACTION",
     "route": "L1"
    },
    {
@@ -383,14 +421,14 @@
     "route": "auto"
    }
   ],
-  "top_action": "BLOCK_CARD",
+  "top_action": "MONITOR_CARD",
   "exposure_usd": 30.91,
   "affected_txn_count": 1,
   "sar_filed": false,
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-012",
-  "revision": 1,
-  "simulated_evidence": true,
+  "revision": 3,
+  "simulated_evidence": false,
   "requested": [
    "customer_validation"
   ]
@@ -407,30 +445,26 @@
   "evidence_strength": "weak",
   "final_actions": [
    {
+    "action": "MONITOR_CARD",
+    "route": "auto"
+   },
+   {
     "action": "DECLINE_TRANSACTION",
     "route": "L1"
    },
    {
     "action": "CREATE_CASE",
     "route": "auto"
-   },
-   {
-    "action": "VERIFY_WITH_CUSTOMER",
-    "route": "auto"
-   },
-   {
-    "action": "MONITOR_CARD",
-    "route": "auto"
    }
   ],
-  "top_action": "DECLINE_TRANSACTION",
+  "top_action": "MONITOR_CARD",
   "exposure_usd": 35.66,
   "affected_txn_count": 1,
   "sar_filed": false,
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-013",
-  "revision": 1,
-  "simulated_evidence": true,
+  "revision": 3,
+  "simulated_evidence": false,
   "requested": [
    "step_up_auth"
   ]
@@ -447,20 +481,44 @@
   "evidence_strength": "strong",
   "final_actions": [
    {
+    "action": "CREATE_CASE",
+    "route": "auto"
+   },
+   {
     "action": "ESCALATE_TO_ANALYST",
     "route": "auto"
+   },
+   {
+    "action": "FILE_REPORT",
+    "route": "L2"
+   },
+   {
+    "action": "MONITOR_CONNECTED_CARDS",
+    "route": "auto"
+   },
+   {
+    "action": "VERIFY_WITH_CUSTOMER",
+    "route": "auto"
+   },
+   {
+    "action": "MONITOR_CARD",
+    "route": "auto"
+   },
+   {
+    "action": "DECLINE_TRANSACTION",
+    "route": "L1"
    }
   ],
-  "top_action": "ESCALATE_TO_ANALYST",
+  "top_action": "CREATE_CASE",
   "exposure_usd": 3778.14,
   "affected_txn_count": 26,
-  "sar_filed": false,
+  "sar_filed": true,
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-014",
-  "revision": 1,
-  "simulated_evidence": true,
+  "revision": 3,
+  "simulated_evidence": false,
   "requested": [
-   "step_up_auth"
+   "customer_validation"
   ]
  },
  {
@@ -470,27 +528,35 @@
   "customer_id": "C03042",
   "card_id": "C03042-K1",
   "pattern": "none",
-  "verdict": "legitimate",
-  "status": "closed_legitimate",
+  "verdict": "uncertain",
+  "status": "escalated",
   "evidence_strength": "weak",
   "final_actions": [
    {
-    "action": "ALLOW_TRANSACTION",
+    "action": "MONITOR_CARD",
     "route": "auto"
    },
    {
-    "action": "MONITOR_CARD",
+    "action": "DECLINE_TRANSACTION",
+    "route": "L1"
+   },
+   {
+    "action": "ESCALATE_TO_ANALYST",
+    "route": "auto"
+   },
+   {
+    "action": "CREATE_CASE",
     "route": "auto"
    }
   ],
-  "top_action": "ALLOW_TRANSACTION",
-  "exposure_usd": 0,
-  "affected_txn_count": 0,
+  "top_action": "MONITOR_CARD",
+  "exposure_usd": 599.94,
+  "affected_txn_count": 1,
   "sar_filed": false,
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-015",
-  "revision": 1,
-  "simulated_evidence": true,
+  "revision": 3,
+  "simulated_evidence": false,
   "requested": [
    "step_up_auth"
   ]
@@ -502,23 +568,31 @@
   "customer_id": "C09988",
   "card_id": "C09988-K1",
   "pattern": "none",
-  "verdict": "legitimate",
-  "status": "closed_legitimate",
+  "verdict": "uncertain",
+  "status": "open",
   "evidence_strength": "weak",
   "final_actions": [
    {
-    "action": "CLOSE_NO_FRAUD",
+    "action": "MONITOR_CARD",
+    "route": "auto"
+   },
+   {
+    "action": "DECLINE_TRANSACTION",
+    "route": "L1"
+   },
+   {
+    "action": "CREATE_CASE",
     "route": "auto"
    }
   ],
-  "top_action": "CLOSE_NO_FRAUD",
-  "exposure_usd": 0,
-  "affected_txn_count": 0,
+  "top_action": "MONITOR_CARD",
+  "exposure_usd": 59.67,
+  "affected_txn_count": 1,
   "sar_filed": false,
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-016",
-  "revision": 1,
-  "simulated_evidence": true,
+  "revision": 3,
+  "simulated_evidence": false,
   "requested": [
    "customer_validation"
   ]
@@ -535,21 +609,25 @@
   "evidence_strength": "weak",
   "final_actions": [
    {
-    "action": "STEP_UP_AUTH",
+    "action": "MONITOR_CARD",
     "route": "auto"
    },
    {
-    "action": "MONITOR_CARD",
+    "action": "DECLINE_TRANSACTION",
+    "route": "L1"
+   },
+   {
+    "action": "CREATE_CASE",
     "route": "auto"
    }
   ],
-  "top_action": "STEP_UP_AUTH",
+  "top_action": "MONITOR_CARD",
   "exposure_usd": 100.09,
   "affected_txn_count": 1,
   "sar_filed": false,
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-017",
-  "revision": 1,
+  "revision": 3,
   "simulated_evidence": false,
   "requested": [
    "step_up_auth"
@@ -562,12 +640,16 @@
   "customer_id": "C02354",
   "card_id": "C02354-K2",
   "pattern": "none",
-  "verdict": "fraud",
-  "status": "closed_fraud",
+  "verdict": "uncertain",
+  "status": "open",
   "evidence_strength": "weak",
   "final_actions": [
    {
-    "action": "BLOCK_CARD",
+    "action": "MONITOR_CARD",
+    "route": "auto"
+   },
+   {
+    "action": "DECLINE_TRANSACTION",
     "route": "L1"
    },
    {
@@ -575,14 +657,14 @@
     "route": "auto"
    }
   ],
-  "top_action": "BLOCK_CARD",
+  "top_action": "MONITOR_CARD",
   "exposure_usd": 39.08,
   "affected_txn_count": 1,
   "sar_filed": false,
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-018",
-  "revision": 1,
-  "simulated_evidence": true,
+  "revision": 3,
+  "simulated_evidence": false,
   "requested": [
    "customer_validation"
   ]
@@ -594,27 +676,31 @@
   "customer_id": "C07987",
   "card_id": "C07987-K2",
   "pattern": "none",
-  "verdict": "legitimate",
-  "status": "closed_legitimate",
+  "verdict": "uncertain",
+  "status": "open",
   "evidence_strength": "weak",
   "final_actions": [
    {
-    "action": "ALLOW_TRANSACTION",
+    "action": "MONITOR_CARD",
     "route": "auto"
    },
    {
-    "action": "MONITOR_CARD",
+    "action": "DECLINE_TRANSACTION",
+    "route": "L1"
+   },
+   {
+    "action": "CREATE_CASE",
     "route": "auto"
    }
   ],
-  "top_action": "ALLOW_TRANSACTION",
-  "exposure_usd": 0,
-  "affected_txn_count": 0,
+  "top_action": "MONITOR_CARD",
+  "exposure_usd": 99.92,
+  "affected_txn_count": 1,
   "sar_filed": false,
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-019",
-  "revision": 1,
-  "simulated_evidence": true,
+  "revision": 3,
+  "simulated_evidence": false,
   "requested": [
    "step_up_auth"
   ]
@@ -626,27 +712,31 @@
   "customer_id": "C12265",
   "card_id": "C12265-K2",
   "pattern": "none",
-  "verdict": "legitimate",
-  "status": "closed_legitimate",
+  "verdict": "uncertain",
+  "status": "open",
   "evidence_strength": "weak",
   "final_actions": [
    {
-    "action": "ALLOW_TRANSACTION",
+    "action": "MONITOR_CARD",
     "route": "auto"
    },
    {
-    "action": "MONITOR_CARD",
+    "action": "DECLINE_TRANSACTION",
+    "route": "L1"
+   },
+   {
+    "action": "CREATE_CASE",
     "route": "auto"
    }
   ],
-  "top_action": "ALLOW_TRANSACTION",
-  "exposure_usd": 0,
-  "affected_txn_count": 0,
+  "top_action": "MONITOR_CARD",
+  "exposure_usd": 125.08,
+  "affected_txn_count": 1,
   "sar_filed": false,
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-020",
-  "revision": 1,
-  "simulated_evidence": true,
+  "revision": 3,
+  "simulated_evidence": false,
   "requested": [
    "step_up_auth"
   ]

@@ -187,7 +187,7 @@ class DeterministicAuthorityTests(Base):
 class StepLimitTests(Base):
     def test_step_limit_ends_a_model_that_keeps_finding_new_things_to_call(self):
         def endless(step, m):
-            return [use(step, "find_similar_cases", txn_id=TXN, k=step + 1)]           # always a NEW valid call, never finishes
+            return [use(step, "find_shared_devices", card_id=CARD, days=step + 1)]      # always a NEW valid call (a different look-back), never finishes
         rec, client, fs = run(endless, budget=L.TokenBudget(200000))
         ag = rec["agentic"]
         self.assertEqual(ag["finish"]["rationale"], "step limit (8) reached")
@@ -212,15 +212,26 @@ class DecisionTests(Base):
         rec, _, _ = run(thorough, decide=lambda v: ("no_further_evidence", {"reason": "looks fine"}), ring=False)
         d = rec["agentic"]["request_decision"]
         self.assertTrue(d["policy_required"])
-        self.assertEqual(d["source"], "policy_overrode_llm")
+        self.assertEqual((d["source"], d["policy_decision"]), ("policy", "NOT_SUGGESTED"))
         self.assertTrue(rec["evidence_requests"])
 
-    def test_model_may_request_more_evidence_than_the_policy_requires(self):
+    def test_policy_gate_rejects_a_model_request_when_policy_requires_none(self):
+        """The model may only SUGGEST evidence. With nothing required by policy the suggestion is refused, recorded, and changes nothing."""
         rec, _, _ = run(thorough, decide=lambda v: ("request_evidence", {"type": "customer_validation", "reason": "confirm"}), ring=False, score=0.1)
         d = rec["agentic"]["request_decision"]
         self.assertFalse(d["policy_required"])
-        self.assertEqual((d["source"], d["final"]), ("llm", True))
-        self.assertEqual(rec["evidence_requests"][0]["type"], "customer_validation")
+        self.assertEqual((d["source"], d["final"], d["policy_decision"]), ("none", False, "REJECTED_NOT_REQUIRED"))
+        self.assertEqual(d["model_suggestion"], {"request": True, "type": "customer_validation"})
+        self.assertEqual(rec["evidence_requests"], [])                                   # no request executed
+        self.assertEqual([a["action"] for a in rec["next_best_actions"]["final"]], ["ALLOW_TRANSACTION"])
+        self.assertEqual(rec["simulated_evidence_ids"], [])
+
+    def test_policy_gate_allows_the_model_suggestion_when_policy_requires_verification(self):
+        rec, _, _ = run(thorough, decide=lambda v: ("request_evidence", {"type": "customer_validation", "reason": "confirm"}), ring=False)
+        d = rec["agentic"]["request_decision"]
+        self.assertTrue(d["policy_required"])
+        self.assertEqual((d["source"], d["policy_decision"]), ("policy", "ALLOWED_POLICY_REQUIRED"))
+        self.assertTrue(rec["evidence_requests"])
 
     def test_model_declining_when_nothing_is_required_makes_no_request(self):
         rec, _, _ = run(thorough, ring=False, score=0.1)

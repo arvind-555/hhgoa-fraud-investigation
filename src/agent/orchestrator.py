@@ -21,7 +21,7 @@ HIST_HOURS, HIST_ROWS = 720, 300
 EXPOSURE_WINDOW_S = 30 * 86400          # episode window for other cards on an evidence device (same 30 days as find_shared_devices)
 MAX_EXPAND_CARDS, EXPAND_ROWS = 40, 300
 # responder vocabulary -> internal outcome (simulator vocabulary and the legacy test-double vocabulary are both accepted)
-NORMALIZE = {"pending": "pending", "no_response": "pending", "no_reply": "no_reply", "confirmed": "confirmed", "verified_legitimate": "confirmed",
+NORMALIZE = {"pending": "pending", "no_response": "no_reply", "no_reply": "no_reply", "confirmed": "confirmed", "verified_legitimate": "confirmed",
              "denied": "denied", "denied_or_unrecognized": "denied", "passed": "passed", "failed": "failed"}
 
 
@@ -314,10 +314,15 @@ class Agent:
         fired = set(d["det"]["fired"])
         band = (d["ctx"].get("model_alert") or {}).get("band") or t.model_alert_band
         strength = "strong" if ("S01" in fired or "S02a" in fired or n >= 2) else "moderate" if n == 1 else "weak" if low else "none"
+        # Independence. Characteristics that DEFINE a pattern are not corroboration: S10/S11/S12 (new device, proxy) are components of the S01 ring rule itself.
+        pattern_defining = sorted(fired & {"S10", "S11", "S12"}) if "S01" in fired else []
+        corroborating = sorted(s for s in fired if s not in pattern_defining and s not in ("S01", "S02a", "S02b", "S06", "S07", "S08"))
+        report = t.trigger_type in ("customer_complaint", "customer_report")           # the customer's own denial: immutable trigger evidence (not simulated)
+        independent = n + (1 if report else 0)                                        # validated sources (+ the customer statement); context signals never count
         if strength == "strong":
-            level = "low" if n >= 2 else "medium"
+            level = "low" if independent >= 2 else "medium"
         elif strength == "moderate":
-            level = "high"
+            level = "low" if report else "high"                                       # customer denial + one validated source: two independent sources
         elif strength == "weak":
             level = "medium"
         else:
@@ -325,18 +330,21 @@ class Agent:
         conflicts = []
         if band == "high" and strength in ("none", "weak"):
             conflicts.append("an alert was raised without validated (tier 1-5) evidence")
-        missing = ["customer response not available yet", "no merchant field: policy R7 (recurring merchant) cannot be evaluated"]
+        missing = ["no merchant field: policy R7 (recurring merchant) cannot be evaluated"]
         if d["card"]["truncated"]:
             missing.append("card history truncated at the row limit")
         cal = self.calibrator.calibrate(strength) if self.calibrator else {"probability": None, "calibrated": False, "source": "unavailable", "method": "none",
                                                                           "gates_failed": ["NOCALIBRATOR"], "gate_notes": ["no calibrator supplied"]}
         self.cal = cal
-        self.unc = Uncertainty(evidence_strength=strength, independent_sources=n + (1 if low else 0), conflicts=conflicts, missing=missing, level=level,
+        reasons = [f"validated independent sources (tier 1-5): {n}", f"customer statement (immutable trigger evidence): {'yes' if report else 'no'}",
+                   f"pattern-defining characteristics (not counted as corroboration): {', '.join(pattern_defining) or 'none'}",
+                   f"context signals (weak, not independent proof): {', '.join(corroborating) or 'none'}", f"model alert band: {band or 'n/a'}"]
+        self.unc = Uncertainty(evidence_strength=strength, independent_sources=independent, conflicts=conflicts, missing=missing, level=level,
                                needs_more_evidence=(level != "low"),
                                calibrated_probability={"value": cal["probability"], "calibrated": cal["calibrated"], "source": cal["source"], "method": cal["method"],
                                                        "status": "calibrated" if cal["calibrated"] else "unavailable_validation_gate_failed",
                                                        "gates_failed": cal["gates_failed"], "gate_notes": cal["gate_notes"]},
-                               reasons=[f"tier1-5 independent sources: {n}", f"low-context sources: {len(low)}", f"model alert band: {band or 'n/a'}"])
+                               reasons=reasons, pattern_defining=pattern_defining, corroborating=corroborating, customer_statement="denial" if report else "")
         self.model_band = band
         self._close_step()
         return self.unc
@@ -358,9 +366,18 @@ class Agent:
             try:
                 d = self.investigator.decide_request(self._assessment_view(unc), allowed)
                 dec["llm"] = d
-                dec["final"] = policy or d["request"]
-                dec["source"] = ("llm+policy" if policy and d["request"] else "policy_overrode_llm" if policy else "llm" if d["request"] else "none")
-                self._llm_type = d["type"] if d["request"] else None
+                dec["model_suggestion"] = {"request": bool(d["request"]), "type": d["type"] if d["request"] else None}
+                # POLICY GATE: the model may only SUGGEST. Only the deterministic policy can make an evidence request happen; a suggestion when policy requires none is refused,
+                # recorded, and never becomes an action or a state change.
+                if not d["request"]:
+                    dec["policy_decision"] = "NOT_SUGGESTED"
+                elif policy:
+                    dec["policy_decision"] = "ALLOWED_POLICY_REQUIRED"
+                else:
+                    dec["policy_decision"] = "REJECTED_NOT_REQUIRED"
+                dec["final"] = policy
+                dec["source"] = "policy" if policy else "none"
+                self._llm_type = d["type"] if (d["request"] and policy) else None
             except InvestigatorFailure as e:
                 self.agentic["fallback"] = ((self.agentic["fallback"] or "") + " | request decision: " + str(e)[:120]).strip(" |")
         self.agentic["request_decision"] = dec
@@ -369,12 +386,12 @@ class Agent:
     def _request_evidence(self):
         t = self.trigger
         online = self.data["ctx"]["transaction"]["channel"] == "online"
-        typ = "customer_validation" if t.trigger_type in ("customer_complaint", "customer_report") or not online else "step_up_auth"
-        if self._llm_type in ("customer_validation", "step_up_auth") and not (t.trigger_type in ("customer_complaint", "customer_report")) and (online or self._llm_type == "customer_validation"):
-            typ = self._llm_type                              # the model's choice, only among the allowed types
+        typ = A.default_verification(self.unc, {"channel": "online" if online else "in_person", "trigger_type": t.trigger_type})       # the policy's first verification (R1)
+        if self._llm_type in ("customer_validation", "step_up_auth") and A.decision_class(self.unc, {"trigger_type": t.trigger_type}) in ("B", "C") and (online or self._llm_type == "customer_validation"):
+            typ = self._llm_type                              # the model's choice, only among the allowed types and only where the policy leaves the choice open
         self.request = EvidenceRequest(type=typ, asked_after_step=len(self.gw.calls), reason=f"uncertainty {self.unc.level}; evidence strength {self.unc.evidence_strength}",
                                        request_id=f"{t.case_id}:REQ1")
-        raw, text = self.responder.respond(self.request, {"case_id": t.case_id, "request_type": typ})   # request and case id only: no labels, no graph, no other cases
+        raw, text = self.responder.respond(self.request, {"case_id": t.case_id, "request_type": typ, "trigger_type": t.trigger_type})   # ids and trigger type only: no labels, no graph, no other cases
         if raw not in NORMALIZE:
             raise InvariantError(f"unknown responder outcome {raw!r}")
         outcome = NORMALIZE[raw]
@@ -386,6 +403,8 @@ class Agent:
             e = self._add(source_tool="evidence_simulator", kind=kind, summary=f"[SIMULATED] {label}: {raw}", rating="HIGH" if kind == "customer" else "MEDIUM",
                           direction="supports_fraud" if neg else "contradicts", simulated=True, max_epoch=0)
             self.by_signal.setdefault("CUSTOMER" if kind == "customer" else "STEPUP", []).append(e.id)
+        else:                                                   # no reply: absence of evidence, recorded as an open question (never as testimony)
+            self.unc.missing.append("the customer / step-up reply was not received within 24 hours (simulated assumption of absence, policy R4)")
         self._close_step(f"outcome={raw} (simulated)")
         return outcome
 
@@ -396,7 +415,8 @@ class Agent:
 
     def _next_best_action(self, outcome):
         ctx = self._ctx()
-        self.initial = A.initial_actions(self.unc, ctx)
+        verify_with = self.request.type if self.request else None
+        self.initial = A.initial_actions(self.unc, ctx, verify_with)
         self.final, o = A.final_actions(self.initial, self.unc, ctx, outcome)
         self._policy_documents()
         strong = self.unc.evidence_strength == "strong"
@@ -404,25 +424,21 @@ class Agent:
         self.p = self.cal["probability"] if (self.cal["calibrated"] and o in ("pending", "no_reply")) else None
         self.p_calibrated = self.p is not None
         self.p_source = "calibration_table" if self.p_calibrated else "unavailable"
-        acts = {a.action for a in self.final}
-        if o == "denied":
-            self.verdict, self.status = "fraud", "closed_fraud"
-        elif o == "confirmed" and "CLOSE_NO_FRAUD" in acts:
-            self.verdict, self.status = "legitimate", "closed_legitimate"
-        elif o == "passed" and "ALLOW_TRANSACTION" in acts:
-            self.verdict, self.status = "legitimate", "closed_legitimate"
-        elif "ALLOW_TRANSACTION" in acts and len(acts) == 1:
-            self.verdict, self.status = "legitimate", "closed_legitimate"
-        else:
-            self.verdict = "fraud" if strong else "uncertain"
-            self.status = "escalated" if "ESCALATE_TO_ANALYST" in acts else "open"
+        self.verdict, self.status = A.decide_verdict(self.unc, ctx, o, self.final)      # evidence class + response + policy; no randomness
+        gaps = A.policy_gaps(self.unc, ctx, o, self.verdict, self.initial, self.final)
+        if gaps:
+            raise InvariantError("policy-required actions missing: " + "; ".join(gaps))
         self.outcome = o
-        self.stop_reason = {"denied": "simulated customer denial settles the question (R2)", "confirmed": "simulated customer confirmation settles the question (R3)",
-                            "passed": ("simulated step-up passed but strong shared-origin evidence remains: escalate (R8)" if strong else
-                                       "simulated step-up passed; no shared-origin evidence contradicts it"),
-                            "failed": "simulated step-up failed; decline and verify with the customer",
-                            "no_reply": "no customer reply (R4); further steps unlikely to change the recommendation"}.get(
-            o, "requested evidence is pending (no simulated response); recommendations stand until it arrives" if self.request else
+        klass = A.decision_class(self.unc, ctx)
+        self.stop_reason = {"denied": "customer denial (simulated what-if) settles the question (R2)", "confirmed": "customer confirmation (simulated what-if) settles the question (R3)",
+                            "passed": ("simulated step-up passed, but strong shared-origin evidence remains and concerns other cards: escalate (R8)" if strong else
+                                       "simulated step-up passed (what-if); no shared-origin evidence contradicts it"),
+                            "failed": "simulated step-up failed (what-if); decline and verify with the customer",
+                            "no_reply": ("no customer reply within 24 h (simulated assumption of absence, R4); the evidence stands and is strong enough to act on" if strong else
+                                         "no customer reply within 24 h (simulated assumption of absence, R4); the evidence is insufficient to conclude, so the verdict stays uncertain")}.get(
+            o, "customer denial corroborated by a validated independent source: policy R2 applies without further verification" if klass == "T+" else
+            "strong validated evidence: no further verification is needed to act on it" if strong else
+            "requested evidence is pending (no simulated response); recommendations stand until it arrives" if self.request else
             "no validated evidence and no request warranted; further steps are unlikely to change the decision")
         fin = (self.agentic.get("llm_log") or {}).get("finish")
         if fin and fin.get("rationale"):
@@ -493,7 +509,8 @@ class Agent:
                                                                "simulated": True, "request_id": self.request.request_id, "outcome": self.request.outcome}],
             "next_best_actions": {"initial": [self._na(a) for a in self.initial], "final": [self._na(a) for a in self.final],
                                   "what_changed": "nothing" if [a.action for a in self.initial] == [a.action for a in self.final] else
-                                  f"the {self.request.outcome if self.request else 'evidence'} response changed the recommendation"},
+                                  ("no reply within 24 h (simulated assumption): policy R4 actions applied" if self.request and self.request.outcome == "no_response" else
+                                   f"the {self.request.outcome if self.request else 'evidence'} response changed the recommendation")},
             "sar": sar,
             "graph_refs": self._graph_refs(legit),
             "exposure_scope": self.exposure_scope, "simulated_evidence_ids": [e.id for e in self.evidence if e.simulated],
@@ -579,5 +596,6 @@ class Agent:
                 raise InvariantError("BLOCK_ALL_CARDS is out of scope for Phase 9B (R10)")
             if a["executed"]:
                 raise InvariantError("nothing may be executed in Phase 9B")
-        if any(a["action"] in ("BLOCK_CARD", "BLOCK_ALL_CARDS") for a in r["next_best_actions"]["initial"]) and not self.request:
-            raise InvariantError("BLOCK must not precede verification (R1)")
+        report = self.trigger.trigger_type in ("customer_report", "customer_complaint")
+        if any(a["action"] in ("BLOCK_CARD", "BLOCK_ALL_CARDS") for a in r["next_best_actions"]["initial"]) and not self.request and not report:
+            raise InvariantError("BLOCK must not precede verification (R1); only a customer's own denial (report) permits R2 without a request")

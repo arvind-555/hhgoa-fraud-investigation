@@ -85,12 +85,30 @@
     "rating": "CONTEXT"
    },
    {
+    "claim": "policy text consulted (policy:3a): A case is not a report. Two different things, and the agent produces both.\n\nA case (CREATE_CASE) is the bank's internal record of an investigation. Open one whe",
+    "source": "document",
+    "ref": "document:policy:3a",
+    "simulated": false,
+    "entity_ids": [],
+    "evidence_id": "E6",
+    "rating": "CONTEXT"
+   },
+   {
     "claim": "policy text consulted (policy:R1): When: The case rests on a single signal (including a risk score alone) and the assessed fraud probability is below 0.70. Actions: VERIFY_WITH_CUSTOMER or STEP_U",
     "source": "document",
     "ref": "document:policy:R1",
     "simulated": false,
     "entity_ids": [],
-    "evidence_id": "E6",
+    "evidence_id": "E7",
+    "rating": "CONTEXT"
+   },
+   {
+    "claim": "policy text consulted (policy:R4): When: No customer reply within 24 hours. Actions: MONITOR_CARD; DECLINE_TRANSACTION for pending authorizations; escalate if exposure > $500. Requires: a custome",
+    "source": "document",
+    "ref": "document:policy:R4",
+    "simulated": false,
+    "entity_ids": [],
+    "evidence_id": "E8",
     "rating": "CONTEXT"
    }
   ],
@@ -106,7 +124,7 @@
    "CC-2223",
    "CC-2308"
   ],
-  "summary": "Evidence strength: weak (only weak context signals (not independent proof); 1 independent source(s)); weak context only: S11 Online anonymous/hidden proxy [E1]. Investigation uncertainty: medium; not available or unresolved: customer response not available yet, no merchant field: policy R7 (recurring merchant) cannot be evaluated; evidence requested (step_up_auth), outcome: no_response. Calibrated probability: not available, because the calibration procedure did not pass its validation gates on the available history (out-of-time validation failed for this evidence class; closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)), so no probability is stated. Recommended (not executed): STEP_UP_AUTH (auto, R1), MONITOR_CARD (auto, R1).",
+  "summary": "Evidence strength: weak (only weak context signals (not independent proof); 0 validated independent source(s)); weak context only: S11 Online anonymous/hidden proxy [E1]. Investigation uncertainty: medium; not available or unresolved: no merchant field: policy R7 (recurring merchant) cannot be evaluated, the customer / step-up reply was not received within 24 hours (simulated assumption of absence, policy R4); evidence requested (step_up_auth), outcome: no_response. Calibrated probability: not available, because the calibration procedure did not pass its validation gates on the available history (out-of-time validation failed for this evidence class; closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)), so no probability is stated. Recommended (not executed): MONITOR_CARD (auto, R4), DECLINE_TRANSACTION (L1, R4), CREATE_CASE (auto, 3a).",
   "written_to_graph": true,
   "graph_case_id": "CASE-HHG-017"
  },
@@ -114,7 +132,7 @@
   {
    "type": "step_up_auth",
    "asked_after_step": 9,
-   "assumed_response": "[SIMULATED] No response received; evidence remains pending.",
+   "assumed_response": "[SIMULATED] No reply received within 24 hours (the task supplies no replies; this is an assumption of absence, not customer testimony).",
    "simulated": true,
    "request_id": "HHG-017:REQ1",
    "outcome": "no_response"
@@ -125,7 +143,7 @@
    {
     "action": "STEP_UP_AUTH",
     "route": "auto",
-    "reason": "R1: only weak/context signals or the model score; verify before any block",
+    "reason": "R1: verify before any block",
     "rules": [
      "R1"
     ],
@@ -138,6 +156,16 @@
     "reason": "watch the card while evidence is pending",
     "rules": [
      "R1"
+    ],
+    "executed": false,
+    "requires_approval": false
+   },
+   {
+    "action": "CREATE_CASE",
+    "route": "auto",
+    "reason": "evidence is requested: open a case (3a)",
+    "rules": [
+     "3a"
     ],
     "executed": false,
     "requires_approval": false
@@ -145,31 +173,41 @@
   ],
   "final": [
    {
-    "action": "STEP_UP_AUTH",
+    "action": "MONITOR_CARD",
     "route": "auto",
-    "reason": "R1: only weak/context signals or the model score; verify before any block",
+    "reason": "R4: no reply within 24 h",
     "rules": [
-     "R1"
+     "R4"
     ],
     "executed": false,
     "requires_approval": false
    },
    {
-    "action": "MONITOR_CARD",
-    "route": "auto",
-    "reason": "watch the card while evidence is pending",
+    "action": "DECLINE_TRANSACTION",
+    "route": "L1",
+    "reason": "R4: pending authorisations (if any)",
     "rules": [
-     "R1"
+     "R4"
+    ],
+    "executed": false,
+    "requires_approval": true
+   },
+   {
+    "action": "CREATE_CASE",
+    "route": "auto",
+    "reason": "evidence is requested: open a case (3a)",
+    "rules": [
+     "3a"
     ],
     "executed": false,
     "requires_approval": false
    }
   ],
-  "what_changed": "nothing"
+  "what_changed": "no reply within 24 h (simulated assumption): policy R4 actions applied"
  },
  "sar": {
   "file": false,
-  "reason": "No report: policy section 3a requires fraud confirmed or strongly suspected AND (exposure above $1,000, a shared device/region cluster or another customer's fraud, or a coordinated/undocumented pattern); this case does not meet it (final actions: MONITOR_CARD, STEP_UP_AUTH).",
+  "reason": "No report: policy section 3a requires fraud to be confirmed or strongly suspected; the verdict is uncertain (evidence strength: weak), so a report is not warranted on the evidence available.",
   "narrative": "",
   "subjects": [],
   "total_amount_usd": 0,
@@ -269,11 +307,11 @@
  "simulated_evidence_ids": [],
  "uncertainty": {
   "evidence_strength": "weak",
-  "independent_sources": 1,
+  "independent_sources": 0,
   "conflicts": [],
   "missing": [
-   "customer response not available yet",
-   "no merchant field: policy R7 (recurring merchant) cannot be evaluated"
+   "no merchant field: policy R7 (recurring merchant) cannot be evaluated",
+   "the customer / step-up reply was not received within 24 hours (simulated assumption of absence, policy R4)"
   ],
   "level": "medium",
   "needs_more_evidence": true,
@@ -293,18 +331,25 @@
    ]
   },
   "reasons": [
-   "tier1-5 independent sources: 0",
-   "low-context sources: 1",
+   "validated independent sources (tier 1-5): 0",
+   "customer statement (immutable trigger evidence): no",
+   "pattern-defining characteristics (not counted as corroboration): none",
+   "context signals (weak, not independent proof): S11",
    "model alert band: medium"
-  ]
+  ],
+  "pattern_defining": [],
+  "corroborating": [
+   "S11"
+  ],
+  "customer_statement": ""
  },
- "stop_reason": "requested evidence is pending (no simulated response); recommendations stand until it arrives",
+ "stop_reason": "no customer reply within 24 h (simulated assumption of absence, R4); the evidence is insufficient to conclude, so the verdict stays uncertain",
  "recommendation_only": true,
  "graph_write": {
   "graph_case_id": "CASE-HHG-017",
-  "revision": 1,
-  "action": "unchanged",
-  "content_sha256": "90934e8e419c65cd4f8bcc9b805cd26e51420ecb72f1970adbf93b631a8aa2b7",
+  "revision": 3,
+  "action": "updated",
+  "content_sha256": "2afa5db7aa17e6c2d15d1dc1ca60bcd3d1fb748b9cdf1c79339fa8bfb92d93df",
   "written_to_graph": true
  },
  "tool_calls": 10,
@@ -333,12 +378,12 @@
   "tokens": 0,
   "calls": 0
  },
- "latency_s": 14.2,
+ "latency_s": 24.59,
  "trace": [
   {
    "step": 1,
    "state": "INITIAL_INVESTIGATION",
-   "ms": 9045.6,
+   "ms": 6544.9,
    "tool_calls": [
     "get_transaction_context",
     "get_card_history",
@@ -376,23 +421,23 @@
   {
    "step": 5,
    "state": "NEXT_BEST_ACTION",
-   "ms": 1274.4,
+   "ms": 1415.9,
    "tool_calls": [
     "retrieve_policy"
    ],
-   "note": "initial=['STEP_UP_AUTH', 'MONITOR_CARD'] final=['STEP_UP_AUTH', 'MONITOR_CARD']"
+   "note": "initial=['STEP_UP_AUTH', 'MONITOR_CARD', 'CREATE_CASE'] final=['MONITOR_CARD', 'DECLINE_TRANSACTION', 'CREATE_CASE']"
   },
   {
    "step": 6,
    "state": "EXPLANATION",
-   "ms": 0.2,
+   "ms": 0.3,
    "tool_calls": [],
    "note": ""
   },
   {
    "step": 7,
    "state": "CASE_WRITE",
-   "ms": 3882.5,
+   "ms": 16632.1,
    "tool_calls": [],
    "note": ""
   }
@@ -401,7 +446,7 @@
   "tool_calls": 10,
   "graph_queries_executed": 9,
   "cache_hits": 10,
-  "tool_ms_total": 16881.5,
-  "tool_ms_max": 6522.0
+  "tool_ms_total": 14050.5,
+  "tool_ms_max": 3256.6
  }
 }

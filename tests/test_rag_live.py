@@ -136,7 +136,7 @@ class LiveAgentAnswer(unittest.TestCase):
                     row = r
                     break
         cls.row, cls.as_of = row, int(row["epoch"])
-        sim = EvidenceSimulator("live-answer-seed")
+        sim = EvidenceSimulator()
         cls.gid = "CASE-TEST-LIVE-ANS"
         G["created"].append(cls.gid)
         gw = ToolGateway(InvestigationSession(cls.as_of, G["c"]))
@@ -174,7 +174,7 @@ class LiveAgentAnswer(unittest.TestCase):
             self.assertEqual(back["case_id"], "TEST-LIVE-ANS")
             self.assertIsNone(back["case"]["fraud_probability"])
             filed = any(a["action"] == "FILE_REPORT" for a in back["next_best_actions"]["final"])
-            self.assertEqual(back["sar"]["file"], filed)                      # the seeded simulator's response decides whether the final actions include a report
+            self.assertEqual(back["sar"]["file"], filed)                      # consistency holds whichever way the (deterministic) decision falls
             if filed:
                 self.assertTrue(6 <= len(re.split(r"(?<=[.!?])\s+(?=[A-Z\[])", back["sar"]["narrative"])) <= 12)
             else:

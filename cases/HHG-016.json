@@ -1,16 +1,18 @@
 {
   "case_id": "HHG-016",
   "case": {
-    "status": "closed_legitimate",
-    "verdict": "legitimate",
+    "status": "open",
+    "verdict": "uncertain",
     "fraud_probability": null,
     "pattern": "none",
     "pattern_description": "",
-    "affected_txn_ids": [],
-    "first_suspicious_txn_id": "",
+    "affected_txn_ids": [
+      "3534820"
+    ],
+    "first_suspicious_txn_id": "3534820",
     "connected_card_ids": [],
     "connected_device_profiles": [],
-    "exposure_usd": 0,
+    "exposure_usd": 59.67,
     "evidence": [
       {
         "claim": "S10 Online id_15 = New",
@@ -56,12 +58,6 @@
         ]
       },
       {
-        "claim": "[SIMULATED] customer validation: verified_legitimate",
-        "source": "customer",
-        "ref": "evidence_request:1",
-        "entity_ids": []
-      },
-      {
         "claim": "policy text consulted (policy:3a): A case is not a report. Two different things, and the agent produces both.\n\nA case (CREATE_CASE) is the bank's internal record of an investigation. Open one whe",
         "source": "document",
         "ref": "document:policy:3a",
@@ -74,9 +70,9 @@
         "entity_ids": []
       },
       {
-        "claim": "policy text consulted (policy:R3): When: The customer confirms the transaction. Actions: CLOSE_NO_FRAUD (note the confirmation). Requires: a customer response",
+        "claim": "policy text consulted (policy:R4): When: No customer reply within 24 hours. Actions: MONITOR_CARD; DECLINE_TRANSACTION for pending authorizations; escalate if exposure > $500. Requires: a custome",
         "source": "document",
-        "ref": "document:policy:R3",
+        "ref": "document:policy:R4",
         "entity_ids": []
       }
     ],
@@ -92,7 +88,7 @@
       "CC-0038",
       "CC-0040"
     ],
-    "summary": "Evidence strength: weak (only weak context signals (not independent proof); 1 independent source(s)); weak context only: S10 Online id_15 = New; S13 Online billing region (addr1) missing; simulated response (not real evidence): [SIMULATED] customer validation: verified_legitimate. Investigation uncertainty: medium; not available or unresolved: customer response not available yet, no merchant field: policy R7 (recurring merchant) cannot be evaluated; evidence requested (customer_validation), outcome: verified_legitimate. Calibrated probability: not available, because the calibration procedure did not pass its validation gates on the available history (out-of-time validation failed for this evidence class; closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)), so no probability is stated. Recommended (not executed): CLOSE_NO_FRAUD (auto, R3).",
+    "summary": "Evidence strength: weak (only weak context signals (not independent proof); 0 validated independent source(s) plus the customer's own statement); weak context only: S10 Online id_15 = New; S13 Online billing region (addr1) missing; customer report: the customer states they did not make the transaction (trigger evidence, unverified). Investigation uncertainty: medium; not available or unresolved: no merchant field: policy R7 (recurring merchant) cannot be evaluated, the customer / step-up reply was not received within 24 hours (simulated assumption of absence, policy R4); evidence requested (customer_validation), outcome: no_response. Calibrated probability: not available, because the calibration procedure did not pass its validation gates on the available history (out-of-time validation failed for this evidence class; closed-case history cannot be transferred to new alerts (most alerts never became labelled cases)), so no probability is stated. Recommended (not executed): MONITOR_CARD (auto, R4), DECLINE_TRANSACTION (L1, R4), CREATE_CASE (auto, 3a).",
     "written_to_graph": true,
     "graph_case_id": "CASE-HHG-016"
   },
@@ -100,20 +96,20 @@
     {
       "type": "customer_validation",
       "asked_after_step": 9,
-      "assumed_response": "[SIMULATED] Customer states they made the transaction."
+      "assumed_response": "[SIMULATED] No reply received within 24 hours (the task supplies no replies; this is an assumption of absence, not customer testimony)."
     }
   ],
   "next_best_actions": {
     "initial": [
       {
-        "action": "STEP_UP_AUTH",
+        "action": "VERIFY_WITH_CUSTOMER",
         "route": "auto",
-        "reason": "R1: only weak/context signals or the model score; verify before any block"
+        "reason": "R1: the customer report is unverified and graph evidence is weak: verify before any block"
       },
       {
         "action": "MONITOR_CARD",
         "route": "auto",
-        "reason": "R1: watch the card while evidence is pending"
+        "reason": "R1: watch the card while the dispute is verified"
       },
       {
         "action": "CREATE_CASE",
@@ -123,23 +119,33 @@
     ],
     "final": [
       {
-        "action": "CLOSE_NO_FRAUD",
+        "action": "MONITOR_CARD",
         "route": "auto",
-        "reason": "R3: customer confirms the transaction (confirmation noted in the case)"
+        "reason": "R4: no reply within 24 h"
+      },
+      {
+        "action": "DECLINE_TRANSACTION",
+        "route": "L1",
+        "reason": "R4: pending authorisations (if any)"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "customer dispute always opens a case (3a)"
       }
     ],
-    "what_changed": "the verified_legitimate response changed the recommendation"
+    "what_changed": "no reply within 24 h (simulated assumption): policy R4 actions applied"
   },
   "sar": {
     "file": false,
-    "reason": "No report: policy section 3a requires fraud confirmed or strongly suspected AND (exposure above $1,000, a shared device/region cluster or another customer's fraud, or a coordinated/undocumented pattern); this case does not meet it (final actions: CLOSE_NO_FRAUD).",
+    "reason": "No report: policy section 3a requires fraud to be confirmed or strongly suspected; the verdict is uncertain (evidence strength: weak), so a report is not warranted on the evidence available.",
     "narrative": "",
     "subjects": [],
     "total_amount_usd": 0,
     "activity_dates": []
   },
-  "stop_reason": "simulated customer confirmation settles the question (R3)",
+  "stop_reason": "no customer reply within 24 h (simulated assumption of absence, R4); the evidence is insufficient to conclude, so the verdict stays uncertain",
   "tool_calls": 10,
   "tokens": 0,
-  "latency_s": 23.26
+  "latency_s": 23.28
 }

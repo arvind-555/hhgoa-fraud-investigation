@@ -28,8 +28,9 @@ export function OverviewPage() {
               <Badge tone="info">Demo mode</Badge>
               <h2>Watch an investigation unfold</h2>
               <p className="muted" style={{ maxWidth: "62ch" }}>
-                {o.showcase ?? "A case"} starts from an analyst request about a shared device. The agent discovers the ring, expands the connected cards, asks for step-up authentication (simulated)
-                and recommends an escalation. Replay is deterministic and uses the stored, validated result. It never waits on an external model.
+                {o.showcase ?? "A case"} starts from an analyst request about a shared device. The agent discovers the ring, expands the connected cards and asks for customer verification
+                (simulated: no reply is assumed). The evidence alone supports a case, a report (Level 2 approval), monitoring of the connected cards and an analyst escalation.
+                Replay is deterministic and uses the stored, validated result. It never waits on an external model.
               </p>
             </div>
             {o.showcase && <a className="btn primary" style={{ height: 40, padding: "0 18px" }} href={href(`/investigations/${o.showcase}`, { demo: "1" })}><Icon name="play" /> Launch demo</a>}
@@ -45,7 +46,7 @@ export function OverviewPage() {
             <Card title="Verdicts"><Bars data={o.verdicts} tone={(k) => VC[k]} /></Card>
             <Card title="Patterns"><Bars data={o.patterns} /></Card>
           </div>
-          <div className="banner sim"><Icon name="info" /><span>Customer and step-up responses in these investigations are <b>simulated</b>. No accuracy is claimed: there is no ground-truth answer key. <b>Fraud probability is not stated</b> because the supplied data does not support a calibrated per-case probability.</span></div>
+          <div className="banner sim"><Icon name="info" /><span>Customer and step-up responses in these investigations are <b>simulated</b> (the default assumption is that no reply arrives) and <b>never decide a verdict</b>: where the evidence is insufficient the verdict is uncertain. No accuracy is claimed: there is no ground-truth answer key. <b>Fraud probability is not stated</b> because the supplied data does not support a calibrated per-case probability.</span></div>
         </div>
       )}</AsyncView>
     </div>

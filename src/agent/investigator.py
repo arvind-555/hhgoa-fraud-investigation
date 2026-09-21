@@ -39,6 +39,9 @@ TOOL_HELP = {
 }
 ARG_HELP = {}                       # argument names, types, bounds, patterns and required lists carry the contract; prose per argument only cost tokens
 SIGNATURE_DEFAULTS = {"get_card_history": {"hours": 720, "max_rows": 300}}
+# Result-size tuning arguments the MODEL may not vary: it always runs the canonical query (same as the deterministic pipeline), so its result is the pipeline's result.
+# Only the model-facing schema and the model's own calls are affected; permissions (validate_call) and the gateway are unchanged.
+LLM_FIXED_ARGS = {"find_similar_cases": {"k": 10}}
 
 SYSTEM = (
     "You orchestrate a bank fraud investigation of one alert. Use the tools; independent calls may be made together in one turn. Work out what kind of fraud this may be (if any), "
@@ -72,6 +75,8 @@ def tool_schemas():
                 props[arg] = {"type": "array", "items": {"type": "string"}, "minItems": 1, "maxItems": 12, **_d(arg)}
             else:
                 props[arg] = {"type": "array", "items": {"type": "string"}, **_d(arg)}
+        for arg, val in LLM_FIXED_ARGS.get(name, {}).items():
+            props[arg] = {"type": "integer", "enum": [val]}                       # the model sees a single legal value: the canonical / default query
         out.append({"name": name, "description": TOOL_HELP[name], "input_schema": {"type": "object", "properties": props, "required": spec["required"], "additionalProperties": False}})
     return out + [FINISH_TOOL]
 
@@ -223,7 +228,10 @@ class LLMInvestigator:
     def _execute(self, gw, uses, state, step):
         """Run the model's tool calls (concurrently). Invalid/denied calls are refused with a short message; the deterministic gateway is the only executor."""
         def one(u):
-            name, args = u["name"], u.get("input") or {}
+            name, args = u["name"], dict(u.get("input") or {})
+            for a_, v_ in LLM_FIXED_ARGS.get(name, {}).items():
+                if a_ in args:
+                    args[a_] = v_                                   # a value other than the canonical one is replaced, never executed
             t0 = time.perf_counter()
             rec = {"step": step, "tool": name, "args": args, "valid": False, "duplicate": False, "ms": 0}
             try:

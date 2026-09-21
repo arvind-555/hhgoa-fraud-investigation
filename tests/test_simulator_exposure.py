@@ -1,4 +1,4 @@
-"""Offline tests: deterministic evidence simulator (B4) and ring/connected-card exposure. No network (fake session implementing the 8 tools)."""
+"""Offline tests: deterministic evidence simulator (B5: no randomness, no hash) and ring/connected-card exposure. No network (fake session implementing the 8 tools)."""
 import json
 import re
 import sys
@@ -12,7 +12,7 @@ from agent.gateway import ToolGateway  # noqa: E402
 from agent.orchestrator import Agent  # noqa: E402
 from agent.reasoner import PendingResponder  # noqa: E402
 from agent.schema import EvidenceRequest, Trigger  # noqa: E402
-from agent.simulator import DISTRIBUTION, EvidenceSimulator, SimulatorError, TEXT  # noqa: E402
+from agent.simulator import MEANING, SCENARIOS, EvidenceSimulator, SimulatorError, TEXT  # noqa: E402
 from fraud_tools.guards import LeakError, ToolError  # noqa: E402
 
 AS_OF = 5_100_000
@@ -25,39 +25,59 @@ def req(case, typ, n=1):
 
 
 class SimulatorTests(unittest.TestCase):
-    def test_same_seed_same_answers_across_instances(self):
-        a, b = EvidenceSimulator("seed-x"), EvidenceSimulator("seed-x")
-        for i in range(200):
-            c = f"SYN-{i:03d}"
-            for typ in DISTRIBUTION:
-                self.assertEqual(a.respond(req(c, typ), {"case_id": c, "request_type": typ}), b.respond(req(c, typ), {"case_id": c, "request_type": typ}))
-
-    def test_known_answers_are_frozen(self):
-        """Regression: sha256-based draws must never change silently (reproducible benchmark runs)."""
+    def test_default_assumption_is_no_reply_for_every_case_and_request_type(self):
+        """The task supplies no replies: the only default assumption is 'no reply within 24 h', for every case, whatever its id or content."""
         s = EvidenceSimulator()
-        got = [s.outcome_for(f"REG-{i:03d}", t) for i in (1, 2, 3) for t in ("customer_validation", "step_up_auth")]
-        self.assertEqual(got, FROZEN)
+        for i in range(300):
+            c = f"SYN-{i:03d}"
+            for typ in ("customer_validation", "step_up_auth"):
+                self.assertEqual(s.respond(req(c, typ), {"case_id": c, "request_type": typ, "trigger_type": "risk_score"})[0], "no_response")
 
-    def test_seed_changes_answers(self):
-        a, b = EvidenceSimulator("s1"), EvidenceSimulator("s2")
-        diff = sum(a.outcome_for(f"SYN-{i}", "step_up_auth") != b.outcome_for(f"SYN-{i}", "step_up_auth") for i in range(300))
-        self.assertGreater(diff, 50)
+    def test_no_randomness_and_no_dependence_on_case_id_or_seed(self):
+        a, b = EvidenceSimulator(), EvidenceSimulator()
+        for scenario in SCENARIOS:
+            a, b = EvidenceSimulator(scenario), EvidenceSimulator(scenario)
+            outs = set()
+            for i in range(200):
+                c = f"SYN-{i:03d}"
+                for typ in ("customer_validation", "step_up_auth"):
+                    ctx = {"case_id": c, "request_type": typ, "trigger_type": "risk_score"}
+                    x = a.respond(req(c, typ), ctx)
+                    self.assertEqual(x, b.respond(req(c, typ), ctx))
+                    outs.add((typ, x[0]))
+            self.assertEqual(len(outs), 2, scenario)                          # exactly one answer per request type, for all 200 cases
+        with self.assertRaises(SimulatorError):
+            EvidenceSimulator("a-seed")                                       # there is no seed: the constructor takes a scenario name only
+        src = (ROOT / "src" / "agent" / "simulator.py").read_text(encoding="utf-8")
+        body = re.sub(r'""".*?"""', "", "\n".join(l for l in src.splitlines() if not l.lstrip().startswith("#")), flags=re.S)
+        for banned in ("hashlib", "import random", "random.", "sha256", "seed", "draw"):
+            self.assertNotIn(banned, body, banned)
+
+    def test_scenarios_and_what_each_response_means(self):
+        self.assertEqual(SCENARIOS["no_reply"], {"customer_validation": "no_response", "step_up_auth": "no_response"})
+        self.assertEqual(SCENARIOS["cardholder_confirms"], {"customer_validation": "verified_legitimate", "step_up_auth": "passed"})
+        self.assertEqual(SCENARIOS["cardholder_denies"], {"customer_validation": "denied_or_unrecognized", "step_up_auth": "failed"})
+        with self.assertRaises(SimulatorError):
+            EvidenceSimulator("coin_flip")
+        d = EvidenceSimulator().describe()
+        self.assertEqual((d["scenario"], d["deterministic"], d["random"], d["uses_labels_or_outcomes"]), ("no_reply", True, False, False))
+        self.assertEqual(set(d["meaning"]), set(TEXT))
+        self.assertEqual(set(MEANING), set(TEXT))
+
+    def test_a_customer_report_is_never_contradicted_by_the_simulator(self):
+        s = EvidenceSimulator("cardholder_confirms")
+        for trig in ("customer_report", "customer_complaint"):
+            with self.assertRaises(SimulatorError):
+                s.respond(req("SYN-1", "customer_validation"), {"case_id": "SYN-1", "request_type": "customer_validation", "trigger_type": trig})
+        # the same scenario is fine for an alert, and a denial is consistent with a report
+        self.assertEqual(s.respond(req("SYN-2", "customer_validation"), {"case_id": "SYN-2", "request_type": "customer_validation", "trigger_type": "risk_score"})[0], "verified_legitimate")
+        d = EvidenceSimulator("cardholder_denies")
+        self.assertEqual(d.respond(req("SYN-3", "customer_validation"), {"case_id": "SYN-3", "request_type": "customer_validation", "trigger_type": "customer_report"})[0], "denied_or_unrecognized")
 
     def test_vocabulary_and_marking(self):
-        s = EvidenceSimulator()
-        for typ, dist in DISTRIBUTION.items():
-            seen = {s.outcome_for(f"C-{i}", typ) for i in range(400)}
-            self.assertEqual(seen, {n for n, _ in dist})
         for out, text in TEXT.items():
             self.assertTrue(text.startswith("[SIMULATED]"), out)
-
-    def test_distribution_matches_the_declared_policy(self):
-        s = EvidenceSimulator()
-        for typ, dist in DISTRIBUTION.items():
-            n = 4000
-            c = Counter(s.outcome_for(f"K-{i}", typ) for i in range(n))
-            for name, p in dist:
-                self.assertAlmostEqual(c[name] / n, p, delta=0.04, msg=f"{typ}/{name}")
+        self.assertIn("absence", TEXT["no_response"])                          # the default states that it is an assumption of absence, not testimony
 
     def test_answers_only_requests_the_agent_issued(self):
         s = EvidenceSimulator()
@@ -77,13 +97,10 @@ class SimulatorTests(unittest.TestCase):
         code = "\n".join(l for l in src.splitlines() if not l.lstrip().startswith("#"))
         body = re.sub(r'""".*?"""', "", code, flags=re.S)
         imports = re.findall(r"^\s*(?:import|from)\s+([\w\.]+)", body, re.M)
-        self.assertEqual(sorted(set(imports)), ["hashlib", "re"])
+        self.assertEqual(sorted(set(imports)), ["re"])
         for banned in ("fraud_tools", "pandas", "case_pack", "closed_cases", "risk_score", "TransactionDT", "qclient", "open("):
             self.assertNotIn(banned, body, banned)
         self.assertEqual(EvidenceSimulator().describe()["uses_labels_or_outcomes"], False)
-
-
-FROZEN = ['no_response', 'passed', 'no_response', 'passed', 'no_response', 'no_response']
 
 
 class FakeSession:
@@ -270,8 +287,8 @@ class SimulatedEvidenceTests(unittest.TestCase):
         a, gw = run_agent(FakeSession(ring=ring), Forced(out))
         return a.run(), a
 
-    def test_customer_outcomes_become_simulated_evidence(self):
-        # in-person / complaint would use customer_validation; force the type through the trigger
+    def test_customer_report_is_immutable_a_later_confirmation_is_a_conflict_not_a_closure(self):
+        """A customer report is trigger evidence. A confirmation (only possible from a test double: the real simulator refuses) must never close it as legitimate."""
         a, gw = run_agent(FakeSession(ring=False), Forced("verified_legitimate"), trig="customer_complaint")
         rec = a.run()
         sim = [e for e in rec["case"]["evidence"] if e["simulated"]]
@@ -279,8 +296,10 @@ class SimulatedEvidenceTests(unittest.TestCase):
         self.assertTrue(sim[0]["claim"].startswith("[SIMULATED]"))
         self.assertEqual(rec["evidence_requests"][0]["type"], "customer_validation")
         self.assertTrue(rec["evidence_requests"][0]["simulated"])
-        self.assertEqual(rec["case"]["verdict"], "legitimate")
-        self.assertEqual([x["action"] for x in rec["next_best_actions"]["final"]], ["CLOSE_NO_FRAUD"])
+        fin = [x["action"] for x in rec["next_best_actions"]["final"]]
+        self.assertEqual(fin, ["ESCALATE_TO_ANALYST", "CREATE_CASE"])
+        self.assertNotIn("CLOSE_NO_FRAUD", fin)
+        self.assertEqual(rec["case"]["verdict"], "uncertain")
         a, gw = run_agent(FakeSession(ring=False), Forced("denied_or_unrecognized"), trig="customer_complaint")
         rec = a.run()
         self.assertEqual(rec["case"]["verdict"], "fraud")
@@ -298,12 +317,16 @@ class SimulatedEvidenceTests(unittest.TestCase):
         self.assertEqual(rec["case"]["verdict"], "uncertain")
         self.assertEqual([e["simulated"] for e in rec["case"]["evidence"] if e["source"] == "customer"], [True])
 
-    def test_no_response_keeps_evidence_pending(self):
+    def test_no_response_is_absence_of_evidence_and_applies_r4(self):
         rec, a = self.go("no_response")
-        self.assertEqual(rec["simulated_evidence_ids"], [])
-        self.assertEqual(rec["case"]["status"], "open")
-        self.assertEqual(rec["next_best_actions"]["what_changed"], "nothing")
-        self.assertIn("pending", rec["stop_reason"])
+        self.assertEqual(rec["simulated_evidence_ids"], [])                    # no evidence is added: nothing is claimed about the customer
+        fin = [x["action"] for x in rec["next_best_actions"]["final"]]
+        self.assertEqual(fin[:2], ["MONITOR_CARD", "DECLINE_TRANSACTION"])      # R4
+        self.assertIn("CREATE_CASE", fin)                                      # 3a: an evidence request opens a case
+        self.assertEqual(rec["case"]["verdict"], "uncertain")                  # insufficient evidence stays uncertain
+        self.assertIn("R4", rec["stop_reason"])
+        self.assertIn("R4", rec["next_best_actions"]["what_changed"])
+        self.assertTrue(any("not received within 24 hours" in m for m in rec["uncertainty"]["missing"]))
 
     def test_simulated_evidence_never_overwrites_graph_evidence(self):
         base, a0 = self.go("no_response", ring=True)
@@ -317,15 +340,19 @@ class SimulatedEvidenceTests(unittest.TestCase):
             self.assertEqual(rec["uncertainty"]["evidence_strength"], base["uncertainty"]["evidence_strength"])
             self.assertEqual(rec["case"]["connected_card_ids"], base["case"]["connected_card_ids"])
 
-    def test_strong_graph_evidence_is_not_closed_by_a_passed_step_up(self):
+    def test_strong_graph_evidence_keeps_its_required_actions_after_a_passed_step_up(self):
+        """R6/R9/3a: a passed step-up on the flagged card says nothing about the other cards on the ring, so the required actions are preserved (plus escalation)."""
         rec, a = self.go("passed", ring=True)
-        self.assertEqual([x["action"] for x in rec["next_best_actions"]["final"]], ["ESCALATE_TO_ANALYST"])
-        self.assertNotEqual(rec["case"]["verdict"], "legitimate")
+        fin = [x["action"] for x in rec["next_best_actions"]["final"]]
+        self.assertTrue({"CREATE_CASE", "FILE_REPORT", "MONITOR_CONNECTED_CARDS", "ESCALATE_TO_ANALYST"} <= set(fin), fin)
+        self.assertEqual(rec["case"]["verdict"], "fraud")
+        self.assertTrue(rec["sar"]["file"])
+        self.assertNotIn("final actions", rec["sar"]["reason"])
 
     def test_end_to_end_with_the_real_simulator_is_reproducible(self):
         outs = []
         for _ in range(2):
-            a, gw = run_agent(FakeSession(ring=False), EvidenceSimulator("repro"), case="REG-777")
+            a, gw = run_agent(FakeSession(ring=False), EvidenceSimulator(), case="REG-777")
             rec = a.run()
             outs.append((rec["evidence_requests"][0]["outcome"], rec["case"]["verdict"], [x["action"] for x in rec["next_best_actions"]["final"]]))
         self.assertEqual(outs[0], outs[1])

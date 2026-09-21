@@ -39,6 +39,30 @@ class PermissionDenied(Exception):
     pass
 
 
+# Optional arguments and the value the tool uses when they are omitted (must equal the InvestigationSession defaults; tests compare them with the real signatures).
+DEFAULTS = {"get_customer_history": {"lookback_days": 200}, "get_card_history": {"hours": 48, "max_rows": 100}, "find_shared_devices": {"days": 30},
+            "find_connected_entities": {"days": 30}, "find_similar_cases": {"k": 10}}
+LIST_ARGS = ("signals", "rule_ids")           # sets of references: order and duplicates carry no meaning
+
+
+def canonical_key(tool, args):
+    """Key under which two calls are the SAME investigation call. Applied only to arguments that ALREADY passed `validate_call` (forbidden / unknown arguments and bad values are refused
+    before this point, and as_of / epochs / filters can never appear). Harmless differences collapse: argument order, an optional argument passed with the tool's own default value
+    (the same value the tool would use if it were omitted), and the order / repetition of a reference list. Anything that can change the result (a different value, e.g. k=5 vs the default
+    10, or a different lookback) keeps a different key."""
+    d = DEFAULTS.get(tool, {})
+    items = []
+    for k, v in args.items():
+        if k in d and v == d[k]:
+            continue
+        if k in LIST_ARGS and isinstance(v, list):
+            v = tuple(sorted(set(v)))
+        elif isinstance(v, list):
+            v = tuple(v)
+        items.append((k, v))
+    return (tool, tuple(sorted(items)))
+
+
 def validate_call(tool, args, state=None):
     """Raise PermissionDenied unless (tool, args) is a whitelisted call. Returns normalised args."""
     if tool not in TOOLS:

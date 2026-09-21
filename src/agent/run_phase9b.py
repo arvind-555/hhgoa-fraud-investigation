@@ -22,7 +22,7 @@ from calibration.runtime import Calibrator  # noqa: E402
 from agent.gateway import ToolGateway  # noqa: E402
 from agent.orchestrator import Agent  # noqa: E402
 from agent.schema import Trigger  # noqa: E402
-from agent.simulator import DEFAULT_SEED, EvidenceSimulator  # noqa: E402
+from agent.simulator import EvidenceSimulator  # noqa: E402
 from fraud_tools.qclient import QueryClient  # noqa: E402
 from fraud_tools.tools import InvestigationSession  # noqa: E402
 
@@ -55,7 +55,7 @@ def main(n_fraud=10, n_cleared=5, n_other=10):
     client = QueryClient()
     io = GraphIO()
     store = LocalCaseStore(OUT / "cases")
-    sim = EvidenceSimulator(DEFAULT_SEED)      # deterministic, seeded; answers only requests issued by the agent; never reads labels
+    sim = EvidenceSimulator()      # deterministic (default assumption: no reply within 24 h); answers only requests issued by the agent; never reads labels
     rows, k = [], 0
     for g, df in groups:
         for _, r in df.iterrows():

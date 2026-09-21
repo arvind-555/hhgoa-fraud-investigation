@@ -172,11 +172,11 @@ class LiveWrite(unittest.TestCase):
         self.assertEqual(before, [self.io.get_vertex(*f) for f in facts])
 
     def test_simulated_evidence_is_marked_in_the_graph(self):
-        sim = EvidenceSimulator("live-test-seed")
+        sim = EvidenceSimulator("cardholder_denies")
         rec, w, gid, as_of = self._write("TEST-LIVE-W2", responder=sim, sim=sim)
         v = self.io.get_vertex("FI_Case", gid)
         ev = json.loads(v["evidence_json"])
-        self.assertEqual(ev["provenance"]["simulator"]["seed"], "live-test-seed")
+        self.assertEqual(ev["provenance"]["simulator"]["scenario"], "cardholder_denies")
         self.assertTrue(all(r["simulated"] for r in json.loads(v["evidence_requests_json"])))
         for e in ev["evidence"]:
             if e["source"] == "customer":

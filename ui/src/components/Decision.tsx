@@ -4,7 +4,7 @@ import { Badge, Card, Icon } from "./ui";
 
 const OUTCOME: Record<string, { label: string; tone: "ok" | "danger" | "warn" | "neutral" }> = {
   passed: { label: "Passed", tone: "ok" }, failed: { label: "Failed", tone: "danger" }, verified_legitimate: { label: "Verified legitimate", tone: "ok" },
-  denied_or_unrecognized: { label: "Denied / not recognized", tone: "danger" }, no_response: { label: "No response", tone: "warn" },
+  denied_or_unrecognized: { label: "Denied / not recognized", tone: "danger" }, no_response: { label: "No reply (assumed)", tone: "warn" },
 };
 
 export function UncertaintyPanel({ d, resolved }: { d: CaseDetail; resolved: boolean }) {
@@ -95,6 +95,12 @@ export function ActionPanel({ d }: { d: CaseDetail }) {
           <div className="action-list">
             <div className="faint" style={{ fontSize: 11.5, textTransform: "uppercase", letterSpacing: ".07em" }}>Then</div>
             {fin.slice(1).map((a, i) => <ActionRow key={i} a={a} />)}
+          </div>
+        )}
+        {fin.some((a) => a.requires_approval) && (
+          <div className="row" style={{ marginTop: 12 }} aria-label="Approvals needed">
+            <span className="faint" style={{ fontSize: 11.5, textTransform: "uppercase", letterSpacing: ".07em" }}>Approvals needed</span>
+            {fin.filter((a) => a.requires_approval).map((a) => <Badge key={a.action} tone={routeTone(a.route)}>{actionLabel(a.action)} · {a.route}</Badge>)}
           </div>
         )}
         {supporting.length > 0 && (

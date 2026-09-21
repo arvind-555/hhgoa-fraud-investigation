@@ -29,11 +29,21 @@ def sections(inp):
     sup = [e for e in ev if e["direction"] == "supports_fraud" and e["rating"] in ("HIGH", "MEDIUM") and not e.get("simulated")]
     low = [e for e in ev if e["direction"] == "supports_fraud" and e["rating"] == "LOW" and not e.get("simulated")]
     sim = [e for e in ev if e.get("simulated")]
-    p1 = [f"Evidence strength: {u['evidence_strength']} ({STRENGTH_TEXT[u['evidence_strength']]}; {u['independent_sources']} independent source(s))"]
+    denial = u.get("customer_statement") == "denial"
+    validated = u["independent_sources"] - (1 if denial else 0)
+    p1 = [f"Evidence strength: {u['evidence_strength']} ({STRENGTH_TEXT[u['evidence_strength']]}; {validated} validated independent source(s)"
+          + (" plus the customer's own statement" if denial else "") + ")"]
     if sup:
         p1.append("validated evidence: " + "; ".join(f"{e['summary']} [{e['id']}]" for e in sup))
+    pd = set(u.get("pattern_defining") or [])
+    defining = [e for e in low if e.get("signal_id") in pd]
+    low = [e for e in low if e.get("signal_id") not in pd]
+    if defining:
+        p1.append("pattern-defining characteristics of the ring rule, not counted as corroboration: " + "; ".join(f"{e['summary']} [{e['id']}]" for e in defining))
     if low:
         p1.append("weak context only: " + "; ".join(f"{e['summary']} [{e['id']}]" for e in low[:4]))
+    if u.get("customer_statement") == "denial":
+        p1.append("customer report: the customer states they did not make the transaction (trigger evidence, unverified)")
     if sim:
         p1.append("simulated response (not real evidence): " + "; ".join(f"{e['summary']} [{e['id']}]" for e in sim))
     s1 = "; ".join(p1) + "."

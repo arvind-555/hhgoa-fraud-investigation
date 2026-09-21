@@ -13,6 +13,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from fraud_tools.tools import ts_of  # noqa: E402
 
+from .actions import filing_conditions  # noqa: E402
+
 MIN_SENTENCES, MAX_SENTENCES = 6, 12
 _SENT = re.compile(r"(?<=[.!?])\s+(?=[A-Z\[])")
 _ID = re.compile(r"\b(?:C\d{5}-K\d|C\d{5}|D_[0-9a-f]{6,}|\d{7})\b")
@@ -56,11 +58,13 @@ def build_facts(agent):
             "flagged_channel": t["channel"], "region": t.get("addr1"), "country": t.get("addr2"), "connected": connected, "devices": devs, "txns": aff, "ring": ring,
             "fired": sorted(fired), "s06": fired.get("S06"), "s07": fired.get("S07"), "s02": [fired[k] for k in ("S02a", "S02b") if k in fired],
             "pattern": None, "exposure": agent.exposure, "first_suspicious": agent.first_suspicious, "final_actions": [a.action for a in agent.final],
-            "simulated": [e.summary for e in agent.evidence if e.simulated], "customer_response": agent.request.outcome if agent.request else None}
+            "simulated": [e.summary for e in agent.evidence if e.simulated], "customer_response": agent.request.outcome if agent.request else None,
+            "verdict": agent.verdict, "strength": agent.unc.evidence_strength}
 
 
 def reason_text(facts, filed, pattern):
-    acts = set(facts["final_actions"])
+    """The SAR decision is explained from CASE FACTS and policy 3a (verdict, evidence, exposure, shared origin, pattern), never from the actions already selected."""
+    conds = filing_conditions(facts["exposure"], facts["fired"])
     if filed:
         why = []
         if "S01" in facts["fired"]:
@@ -71,9 +75,12 @@ def reason_text(facts, filed, pattern):
             why.append("R6: shared device profile linking several cards")
         if facts["exposure"] > 1000:
             why.append("exposure above $1,000")
-        return "FILE_REPORT recommended (policy section 3a): " + "; ".join(why or ["fraud confirmed or strongly suspected with a qualifying condition"]) + "."
-    need = "fraud confirmed or strongly suspected AND (exposure above $1,000, a shared device/region cluster or another customer's fraud, or a coordinated/undocumented pattern)"
-    return f"No report: policy section 3a requires {need}; this case does not meet it (final actions: {', '.join(sorted(acts)) or 'none'})."
+        return "FILE_REPORT recommended (policy section 3a): fraud strongly suspected (verdict: fraud); " + "; ".join(why or conds or ["a qualifying condition holds"]) + "."
+    if facts["verdict"] != "fraud":
+        return (f"No report: policy section 3a requires fraud to be confirmed or strongly suspected; the verdict is {facts['verdict']} (evidence strength: {facts['strength']}), "
+                "so a report is not warranted on the evidence available.")
+    return ("No report: fraud is suspected, but none of the policy 3a qualifying conditions holds (exposure does not exceed $1,000; no shared device or region cluster; "
+            "no other customer's fraud; not a coordinated or undocumented pattern).")
 
 
 def build_sar(agent, pattern, description):

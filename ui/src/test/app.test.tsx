@@ -46,16 +46,23 @@ describe("next best action (authoritative backend value)", () => {
     expect(within(p).getByText(/Nothing has been executed/)).toBeInTheDocument();
     expect(within(p).getByText("FILE REPORT")).toBeInTheDocument();   // later action with its own L2 route
   });
-  it("shows an automatic action as needing no approval", () => {
+  it("keeps every required ring action and shows which ones need approval (R6/R9/3a)", () => {
     render(<ActionPanel d={D014} />);
     const p = screen.getByLabelText("Recommended next action");
-    expect(p.querySelector(".action-name")).toHaveTextContent("ESCALATE TO ANALYST");
+    expect(p.querySelector(".action-name")).toHaveTextContent("CREATE CASE");
     expect(within(p).getByText("No approval needed")).toBeInTheDocument();
+    for (const a of ["ESCALATE TO ANALYST", "FILE REPORT", "MONITOR CONNECTED CARDS"]) expect(within(p).getAllByText(a).length).toBeGreaterThan(0);
+    const approvals = within(p).getByLabelText("Approvals needed");
+    expect(approvals).toHaveTextContent("FILE REPORT · L2");
+    expect(approvals).toHaveTextContent("DECLINE TRANSACTION · L1");
   });
-  it("shows the initial and final recommendations", () => {
-    render(<ActionPanel d={D006} />);
+  it("shows the initial and final recommendations and what changed", () => {
+    render(<ActionPanel d={D001} />);
     expect(screen.getByText("Before additional evidence")).toBeInTheDocument();
-    expect(screen.getByText(D006.actions.what_changed)).toBeInTheDocument();
+    expect(screen.getByText(D001.actions.what_changed)).toBeInTheDocument();
+    expect(screen.getByText(/policy R4 actions applied/)).toBeInTheDocument();
+    render(<ActionPanel d={D006} />);
+    expect(screen.getByText(/The recommendation did not change: nothing/)).toBeInTheDocument();
   });
 });
 
@@ -66,8 +73,14 @@ describe("evidence center", () => {
     expect(screen.getAllByText("Strong").length).toBeGreaterThan(0);
     expect(screen.getByText(/S01 Shared-origin device ring/)).toBeInTheDocument();
   });
-  it("marks simulated evidence as simulated, never as customer evidence", () => {
+  it("invents no customer testimony: a no-reply case has no simulated evidence at all", () => {
     render(<EvidenceCenter d={D014} />);
+    expect(screen.queryByRole("tab", { name: /Additional evidence/ })).not.toBeInTheDocument();
+    expect(screen.queryByText("Simulated")).not.toBeInTheDocument();
+  });
+  it("marks any simulated evidence as simulated, never as customer evidence", () => {
+    const sim = { category: "Additional evidence", items: [{ id: "E99", title: "[SIMULATED] customer validation: denied_or_unrecognized", source: "evidence_simulator", source_label: "evidence_simulator", rating: "HIGH" as const, strength: "Strong", why: "Simulated response: not real customer evidence.", entities: [], simulated: true }] };
+    render(<EvidenceCenter d={{ ...D014, evidence: [...D014.evidence, sim] }} />);
     fireEvent.click(screen.getByRole("tab", { name: /Additional evidence/ }));
     expect(screen.getByText("Simulated")).toBeInTheDocument();
     expect(screen.getByText(/Simulated response: not real customer evidence/)).toBeInTheDocument();
@@ -79,13 +92,19 @@ describe("evidence center", () => {
 });
 
 describe("uncertainty transition", () => {
-  it("shows pending before the response and the backend verdict after", () => {
-    const { rerender } = render(<UncertaintyPanel d={D006} resolved={false} />);
+  it("shows pending before the response, then the assumed no-reply and the backend verdict (uncertain, not a guess)", () => {
+    const { rerender } = render(<UncertaintyPanel d={D001} resolved={false} />);
     expect(screen.getAllByText("Pending").length).toBeGreaterThan(0);
-    rerender(<UncertaintyPanel d={D006} resolved />);
-    expect(screen.getByText(/Denied \/ not recognized/)).toBeInTheDocument();
+    rerender(<UncertaintyPanel d={D001} resolved />);
+    expect(screen.getByText("No reply (assumed)")).toBeInTheDocument();
+    expect(screen.getAllByText("Uncertain").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Simulated").length).toBeGreaterThan(0);
     expect(screen.getByText(/not from a real customer/)).toBeInTheDocument();
+    expect(screen.getByText(/absence, not customer testimony/)).toBeInTheDocument();
+  });
+  it("a corroborated customer report needs no request: the verdict comes from the evidence", () => {
+    render(<UncertaintyPanel d={D006} resolved />);
+    expect(screen.getByText(/No additional evidence was requested/)).toBeInTheDocument();
   });
   it("does not imply a request when none was made", () => {
     render(<UncertaintyPanel d={{ ...D001, requests: [] }} resolved />);
@@ -97,7 +116,7 @@ describe("case record", () => {
   it("shows the graph write, revision and that no probability is stated", () => {
     render(<CasePanel d={D014} />);
     expect(screen.getByText("Written to TigerGraph")).toBeInTheDocument();
-    expect(screen.getByText(/revision 1/)).toBeInTheDocument();
+    expect(screen.getByText(/revision \d/)).toBeInTheDocument();
     expect(screen.getByText("Not stated")).toBeInTheDocument();
   });
   it("degrades gracefully when the live check cannot reach the graph", async () => {
@@ -161,12 +180,12 @@ describe("outcome strip and hero", () => {
     render(<OutcomeStrip d={D014} />);
     const s = screen.getByLabelText("Investigation outcome");
     expect(s).toHaveTextContent(/S01 Shared-origin device ring/);
-    expect(s).toHaveTextContent(/Step-up authentication/);
-    expect(s).toHaveTextContent(/passed · simulated/);
-    expect(s).toHaveTextContent(/ESCALATE TO ANALYST/);
+    expect(s).toHaveTextContent(/Customer verification/);
+    expect(s).toHaveTextContent(/no response · simulated/);
+    expect(s).toHaveTextContent(/CREATE CASE/);
     expect(s).toHaveTextContent(/Automatic \(no approval\)/);
     expect(s).toHaveTextContent(/26 transactions · \$3,778\.14/);
-    expect(s).toHaveTextContent(/CASE-HHG-014 · revision 1/);
+    expect(s).toHaveTextContent(/CASE-HHG-014 · revision \d/);
   });
   it("says so when nothing was requested or found", () => {
     render(<OutcomeStrip d={{ ...D001, requests: [], evidence: [] }} />);
@@ -215,7 +234,7 @@ describe("case list", () => {
 describe("investigation workspace", () => {
   it("shows the whole backend result immediately outside demo mode", () => {
     render(<Workspace d={D014} demo={false} />);
-    expect(screen.getByLabelText("Recommended next action").querySelector(".action-name")).toHaveTextContent("ESCALATE TO ANALYST");
+    expect(screen.getByLabelText("Recommended next action").querySelector(".action-name")).toHaveTextContent("CREATE CASE");
     expect(screen.getByLabelText("Relationship graph for HHG-014")).toBeInTheDocument();
     expect(screen.queryByText(/Demo mode\./)).not.toBeInTheDocument();
   });
@@ -265,7 +284,7 @@ describe("loading, error and not-found states", () => {
     const f = vi.fn().mockResolvedValue({ ok: true, json: async () => D001 });
     vi.stubGlobal("fetch", f);
     render(<InvestigationView id="HHG-001" demo={false} />);
-    expect((await screen.findByLabelText("Recommended next action")).querySelector(".action-name")).toHaveTextContent("CLOSE NO FRAUD");
+    expect((await screen.findByLabelText("Recommended next action")).querySelector(".action-name")).toHaveTextContent("MONITOR CARD");
     expect(f).toHaveBeenCalledWith("/api/cases/HHG-001");
     expect(f.mock.calls.every((c) => c.length === 1)).toBe(true);   // GET only: no method, body or headers were ever passed
   });
