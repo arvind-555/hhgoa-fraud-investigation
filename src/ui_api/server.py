@@ -82,7 +82,7 @@ def _live_probe(graph_case_id):
         sys.path.insert(0, str(ROOT / "scripts" / "analysis"))
         from agent.graphio import GraphIO
         v = GraphIO().get_vertex("FI_Case", graph_case_id)
-    except Exception as e:  # noqa: BLE001 - surface only the exception class
+    except (Exception, SystemExit) as e:  # noqa: BLE001 - surface only the exception class; tg.token() signals a failed token mint with SystemExit, which must not escape the request
         return {"reachable": False, "error": f"graph unavailable ({type(e).__name__})"}
     if not v:
         return {"reachable": True, "found": False, "graph_case_id": graph_case_id}
@@ -91,8 +91,10 @@ def _live_probe(graph_case_id):
 
 
 def _policies():
-    from rag.chunks import build_all
-    docs = [{"ref": c["source_ref"].replace("policy:", ""), "text": c["text"]} for c in build_all() if c["doc_type"] == "policy"]
+    from rag.chunks import assert_clean, static_chunks   # policy documents come from README.md + fraud_tools.policy only; the closed-case chunks (large CSVs) are never built here
+    chunks = static_chunks()
+    assert_clean(chunks)
+    docs = [{"ref": c["source_ref"].replace("policy:", ""), "text": c["text"]} for c in chunks if c["doc_type"] == "policy"]
     return {"documents": docs, "routes": {"auto": "No approval", "L1": "Team lead", "L2": "Fraud manager"}}
 
 

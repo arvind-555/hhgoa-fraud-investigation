@@ -1,0 +1,6 @@
+# Runtime dependencies of the UI/API service (src/ui_api) only. Analysis, tests and the optional LLM/MCP path have their own needs.
+# pandas / numpy: src/rag/chunks.py (imported by /api/policies) imports pandas at module level; the policies endpoint itself reads no CSV.
+starlette==1.6.0
+uvicorn==0.53.0
+pandas==2.3.3
+numpy==2.2.6

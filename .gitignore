@@ -77,3 +77,6 @@ nohup.out
 tmp/
 .claude/
 .claude.json*
+
+# Deployment asset: the 3.5 KB case trigger file the UI service reads at start-up (the large analysis CSVs stay ignored)
+!/case_pack.csv

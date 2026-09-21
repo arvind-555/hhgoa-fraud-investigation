@@ -1,0 +1,36 @@
+# VCS, secrets, local environments
+.git
+.gitignore
+.env
+.env.*
+*.env
+credentials*
+*.pem
+*.key
+.venv
+venv
+env
+# Node (rebuilt inside the image) and build output
+**/node_modules
+ui/dist
+# Data, logs, caches, evaluation output
+*.csv
+!case_pack.csv
+*.parquet
+*.pkl
+*.whl
+*.log
+data
+**/__pycache__
+**/*.pyc
+.pytest_cache
+.mypy_cache
+.ipynb_checkpoints
+scripts/analysis/.cache
+scripts/analysis/output
+# Not needed at run time
+tests
+docs
+graph
+scripts
+config

@@ -3,6 +3,7 @@ Guards: graph name is FIXED to FraudInvestigation; any statement/path that menti
 secrets/tokens are redacted from everything returned or printed."""
 import hashlib
 import json
+import os
 import re
 import time
 import urllib.error
@@ -13,7 +14,19 @@ ROOT = Path(__file__).resolve().parents[2]
 GRAPH = "FraudInvestigation"
 PROTECTED = "transaction_fraud"
 
-_env = dict(re.findall(r"^([A-Z_]+)=(.*)$", (ROOT / ".env").read_text(encoding="utf-8"), re.M))
+def _load_env():
+    """Process environment first (deployment), the git-ignored .env as the local fallback. Only the three TigerGraph names are taken from the environment."""
+    f = ROOT / ".env"
+    env = dict(re.findall(r"^([A-Z_]+)=(.*)$", f.read_text(encoding="utf-8"), re.M)) if f.exists() else {}
+    for k in ("TG_HOST", "TG_SECRET", "TG_GRAPHNAME"):
+        if os.environ.get(k):
+            env[k] = os.environ[k]
+    if not env.get("TG_HOST") or not env.get("TG_SECRET"):
+        raise RuntimeError("TigerGraph credentials are not configured (TG_HOST / TG_SECRET)")
+    return env
+
+
+_env = _load_env()
 HOST, _SECRET = _env["TG_HOST"].rstrip("/"), _env["TG_SECRET"]
 if _env.get("TG_GRAPHNAME") != GRAPH:
     raise SystemExit(f"refusing: TG_GRAPHNAME must be {GRAPH}")

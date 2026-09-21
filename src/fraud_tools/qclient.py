@@ -6,6 +6,7 @@
 * every query has a fixed parameter signature: name -> type ('int' | ('vertex', TypeName)).
 """
 import json
+import os
 import re
 import time
 import urllib.error
@@ -37,7 +38,13 @@ INT_LIMITS["max_chunks"] = (1, 8000)
 
 class QueryClient:
     def __init__(self):
-        env = dict(re.findall(r"^([A-Z_]+)=(.*)$", (ROOT / ".env").read_text(encoding="utf-8"), re.M))
+        f = ROOT / ".env"                                             # process environment first (deployment), the git-ignored .env as the local fallback
+        env = dict(re.findall(r"^([A-Z_]+)=(.*)$", f.read_text(encoding="utf-8"), re.M)) if f.exists() else {}
+        for k in ("TG_HOST", "TG_SECRET", "TG_GRAPHNAME"):
+            if os.environ.get(k):
+                env[k] = os.environ[k]
+        if not env.get("TG_HOST") or not env.get("TG_SECRET"):
+            raise ToolError("TigerGraph credentials are not configured (TG_HOST / TG_SECRET)")
         if env.get("TG_GRAPHNAME") != GRAPH:
             raise ToolError(f"TG_GRAPHNAME must be {GRAPH}")
         self._host, self._secret = env["TG_HOST"].rstrip("/"), env["TG_SECRET"]
