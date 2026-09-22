@@ -84,7 +84,7 @@ export function OutcomeStrip({ d }: { d: CaseDetail }) {
       <Icon name="arrow" />
       <div><small>Action</small><b>{first ? first.action.replace(/_/g, " ") : "None"}</b>{first && <span>{first.route_label}</span>}</div>
       <Icon name="arrow" />
-      <div><small>Case</small><b>{c.written_to_graph ? "Written to TigerGraph" : "Not written"}</b><span>{c.graph_case_id}{c.revision ? ` · revision ${c.revision}` : ""}</span></div>
+      <div><small>Case</small><b>{d.live ? "Preview only" : c.written_to_graph ? "Written to TigerGraph" : "Not written"}</b><span>{d.live ? "No FI_Case write performed" : <>{c.graph_case_id}{c.revision ? ` · revision ${c.revision}` : ""}</>}</span></div>
     </section>
   );
 }

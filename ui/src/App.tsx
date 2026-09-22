@@ -3,10 +3,12 @@ import { Icon, EmptyState } from "./components/ui";
 import { href, useRoute } from "./router";
 import { CasesPage, CustomersPage, GraphPage, InvestigationsPage } from "./pages/Lists";
 import { InvestigationView } from "./pages/InvestigationView";
+import { LiveInvestigationPage } from "./pages/LiveInvestigation";
 import { OverviewPage, PoliciesPage, SystemPage } from "./pages/Other";
 
 const NAV = [
   { to: "/", key: "", label: "Overview", icon: "home" }, { to: "/investigations", key: "investigations", label: "Investigations", icon: "pulse" },
+  { to: "/live", key: "live", label: "Live investigation", icon: "play" },
   { to: "/cases", key: "cases", label: "Cases", icon: "folder" }, { to: "/customers", key: "customers", label: "Customers", icon: "users" },
   { to: "/graph", key: "graph", label: "Graph", icon: "graph" }, { to: "/policies", key: "policies", label: "Policies", icon: "book" }, { to: "/system", key: "system", label: "System status", icon: "db" },
 ];
@@ -29,6 +31,7 @@ export default function App() {
   let page;
   if (section === "") page = <OverviewPage />;
   else if (section === "investigations") page = id ? <InvestigationView id={id} demo={demo} key={id + String(demo)} /> : <InvestigationsPage />;
+  else if (section === "live") page = <LiveInvestigationPage />;
   else if (section === "cases") page = <CasesPage />;
   else if (section === "customers") page = <CustomersPage />;
   else if (section === "graph") page = <GraphPage />;
@@ -46,9 +49,9 @@ export default function App() {
         </div>
         <nav className="nav" aria-label="Primary">
           <div className="nav-label">Workspace</div>
-          {NAV.slice(0, 5).map((n) => <a key={n.key} href={href(n.to)} className={section === n.key ? "active" : ""} aria-current={section === n.key ? "page" : undefined}><Icon name={n.icon} />{n.label}</a>)}
+          {NAV.slice(0, 6).map((n) => <a key={n.key} href={href(n.to)} className={section === n.key ? "active" : ""} aria-current={section === n.key ? "page" : undefined}><Icon name={n.icon} />{n.label}</a>)}
           <div className="nav-label">Reference</div>
-          {NAV.slice(5).map((n) => <a key={n.key} href={href(n.to)} className={section === n.key ? "active" : ""} aria-current={section === n.key ? "page" : undefined}><Icon name={n.icon} />{n.label}</a>)}
+          {NAV.slice(6).map((n) => <a key={n.key} href={href(n.to)} className={section === n.key ? "active" : ""} aria-current={section === n.key ? "page" : undefined}><Icon name={n.icon} />{n.label}</a>)}
         </nav>
         <div className="sidebar-foot">Recommendations only.<br />Approvals stay with people.</div>
       </aside>

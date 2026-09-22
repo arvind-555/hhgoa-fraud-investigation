@@ -298,7 +298,13 @@ describe("safety boundaries of the frontend bundle", () => {
       expect(text, f).not.toMatch(/TG_SECRET|TG_HOST|OPENROUTER|ANTHROPIC_API_KEY|sk-or-|Bearer |run_gsql|interpreted_query|[?&]as_of=/);
     }
   });
-  it("only ever issues GET requests", () => {
-    for (const [f, text] of src) expect(text, f).not.toMatch(/method:\s*["'](POST|PUT|PATCH|DELETE)/i);
+  it("only ever issues GET requests, except the one live-preview POST (case id in the path, no body)", () => {
+    for (const [f, text] of src) {
+      expect(text, f).not.toMatch(/method:\s*["'](PUT|PATCH|DELETE)/i);
+      if (!f.endsWith("api.ts")) expect(text, f).not.toMatch(/method:\s*["']POST/i);
+    }
+    const api = src.find(([f]) => f.endsWith("api.ts"))![1];
+    expect(api.match(/method:\s*["']POST["']/g)).toHaveLength(1);
+    expect(api).toMatch(/fetch\(`\/api\/live\/\$\{encodeURIComponent\(caseId\)\}`, \{ method: "POST" \}\)/);   // path only: no body, headers or query
   });
 });

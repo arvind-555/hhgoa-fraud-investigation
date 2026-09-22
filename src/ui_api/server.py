@@ -1,4 +1,5 @@
-"""Starlette app for the UI. READ-ONLY: no write endpoints, no GSQL, no credentials in responses, as_of never accepted from the client.
+"""Starlette app for the UI. No graph writes, no GSQL, no credentials in responses, as_of never accepted from the client.
+The only POST is /api/live/{case_id}: a live investigation PREVIEW (ui_api/live.py) that reads TigerGraph, never writes FI_Case and accepts nothing but the case id.
 
 Run: python src/ui_api/server.py [port]        (default 8787; serves ui/dist too when it has been built)
 """
@@ -14,14 +15,16 @@ from starlette.staticfiles import StaticFiles
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
+from ui_api.live import Busy, LiveService, UnknownCase  # noqa: E402
 from ui_api.service import CaseNotFound, CaseService  # noqa: E402
 
 DIST = ROOT / "ui" / "dist"
 GRAPH_TIMEOUT_S = 25
 
 
-def make_app(service=None, graph_probe=None):
+def make_app(service=None, graph_probe=None, live=None):
     svc = service or CaseService()
+    lv = live or LiveService(svc.pack)
     probe = graph_probe or _live_probe
 
     async def health(request):
@@ -59,10 +62,33 @@ def make_app(service=None, graph_probe=None):
     async def system(request):
         return JSONResponse({"api": {"ok": True, "cases": len(svc.ids()), "records": sum(1 for c in svc.ids() if svc._raw(c)[1] is not None)},
                              "graph": await _run(probe, "CASE-HHG-014"),
-                             "safety": ["Read-only API: no write endpoints", "No GSQL accepted from the client", "as_of is fixed by the backend runner, never by the UI", "No credentials in any response"]})
+                             "safety": ["No graph writes: the API never writes FI_Case or any other graph object (the live preview only reads)", "No GSQL accepted from the client", "as_of is fixed by the backend runner, never by the UI", "No credentials in any response"]})
+
+    async def live_start(request):
+        """POST /api/live/{case_id}: no body, no query string. Returns a job immediately; the investigation runs in the background."""
+        if request.query_params or await request.body():
+            return JSONResponse({"error": "this endpoint accepts no parameters and no request body"}, status_code=400)
+        try:
+            job, _ = lv.submit(request.path_params["ident"])
+        except UnknownCase:
+            raise HTTPException(404, "unknown case")
+        except Busy as b:
+            return JSONResponse({"error": "busy", "message": "Another live investigation is running. Try again shortly.", "retry_after_s": b.retry_after_s},
+                                status_code=429, headers={"Retry-After": str(b.retry_after_s)})
+        view = lv.view_job(job)
+        return JSONResponse(view, status_code=202 if view["status"] in ("queued", "running") else 200)
+
+    async def live_status(request):
+        if request.query_params:
+            return JSONResponse({"error": "this endpoint accepts no parameters"}, status_code=400)
+        try:
+            return JSONResponse(lv.view(request.path_params["ident"]))
+        except UnknownCase:
+            raise HTTPException(404, "unknown job")
 
     routes = [Route("/api/health", health), Route("/api/cases", cases), Route("/api/cases/{case_id}", case), Route("/api/cases/{case_id}/graph-check", graph_check),
-              Route("/api/overview", overview), Route("/api/graph", overview_graph), Route("/api/customers", customers), Route("/api/policies", policies), Route("/api/system", system)]
+              Route("/api/overview", overview), Route("/api/graph", overview_graph), Route("/api/customers", customers), Route("/api/policies", policies), Route("/api/system", system),
+              Route("/api/live/{ident}", live_start, methods=["POST"]), Route("/api/live/{ident}", live_status, methods=["GET"])]
     if (DIST / "index.html").exists():
         routes.append(Mount("/assets", StaticFiles(directory=DIST / "assets")))
         routes.append(Route("/{path:path}", lambda request: FileResponse(DIST / "index.html")))

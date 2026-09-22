@@ -33,4 +33,5 @@ tests
 docs
 graph
 scripts
-config
+config/*
+!config/calibration_v1.json

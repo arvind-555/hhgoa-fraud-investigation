@@ -31,6 +31,7 @@ export interface CaseDetail {
           graph_write_action: string | null; fraud_probability: number | null; probability_note: string; stop_reason: string };
   sar: Sar;
   measured: { tool_calls: number; tokens: number; latency_s: number; mode: string };
+  live?: { preview: boolean; written_to_graph: boolean };   // present only on a live investigation preview
   graph: GraphData;
 }
 export interface Overview { total: number; verdicts: Record<string, number>; patterns: Record<string, number>; triggers: Record<string, number>; sar_filed: number; written_to_graph: number; exposure_usd: number; needs_approval: number; showcase: string | null }
@@ -38,3 +39,12 @@ export interface GraphProbe { reachable: boolean; found?: boolean; graph_case_id
 export interface CustomerRow { customer_id: string; cards: string[]; cases: { case_id: string; verdict: string; pattern: string }[]; exposure_usd: number }
 export interface SystemStatus { api: { ok: boolean; cases: number; records: number }; graph: GraphProbe; safety: string[] }
 export interface PolicyDocs { documents: { ref: string; text: string }[]; routes: Record<string, string> }
+
+// Live investigation preview (POST /api/live/{case_id}, GET /api/live/{job_id}). Rendered as given; the client never sends anything but the case id.
+export interface LiveConsistency { checked: boolean; match: boolean | null; level: "match" | "differs" | "unknown"; message: string; live_sha256: string; stored_sha256: string | null; stored_revision: number | null; differs: string[]; written_to_graph: boolean }
+export interface LiveResult {
+  live: true; executed_against: string; written_to_graph: false; fi_case_write: string;
+  summary: { verdict: string; status: string; pattern: string; exposure_usd: number; evidence_strength: string | null; sar_file: boolean; final_actions: { action: string; route: string }[]; tool_calls: number; latency_s: number; graph_queries: number };
+  consistency: LiveConsistency; detail: CaseDetail;
+}
+export interface LiveJob { job_id: string; case_id: string; status: "queued" | "running" | "completed" | "failed"; elapsed_s: number; error: string | null; error_code: string | null; result?: LiveResult }

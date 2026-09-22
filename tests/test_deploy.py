@@ -123,6 +123,22 @@ class DeploymentAssets(unittest.TestCase):
         self.assertLess(p.stat().st_size, 20_000)
         self.assertEqual(len(p.read_text(encoding="utf-8").strip().splitlines()), 21)          # header + 20 cases
 
+    def test_docker_image_ships_the_calibration_file_and_nothing_else_from_config(self):
+        docker = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+        ignore = [l.strip() for l in (ROOT / ".dockerignore").read_text(encoding="utf-8").splitlines()]
+        self.assertIn("COPY config/calibration_v1.json ./config/calibration_v1.json", docker)
+        self.assertIn("config/*", ignore)                                              # the rest of config/ stays out of the image
+        self.assertIn("!config/calibration_v1.json", ignore)
+        self.assertLess(ignore.index("config/*"), ignore.index("!config/calibration_v1.json"))
+        for kept in ("COPY cases ./cases", "COPY demo/records ./demo/records", "COPY src ./src"):
+            self.assertIn(kept, docker)
+        self.assertNotIn(".env", [l for l in docker.splitlines() if l.startswith("COPY")])
+
+    def test_calibration_artifact_is_readable_by_the_calibrator(self):
+        from calibration.runtime import Calibrator, DEFAULT_ARTIFACT
+        self.assertEqual(DEFAULT_ARTIFACT, ROOT / "config" / "calibration_v1.json")
+        self.assertEqual(Calibrator(10 ** 7).version, "b3-v1")
+
     def test_requirements_pin_the_runtime_packages(self):
         lines = [l.split("==") for l in (ROOT / "requirements.txt").read_text().splitlines() if l and not l.startswith("#")]
         self.assertEqual(sorted(n for n, _ in lines), ["numpy", "pandas", "starlette", "uvicorn"])

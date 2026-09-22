@@ -13,6 +13,7 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 COPY src ./src
 COPY README.md case_pack.csv ./
+COPY config/calibration_v1.json ./config/calibration_v1.json
 COPY cases ./cases
 COPY demo/records ./demo/records
 COPY --from=ui /ui/dist ./ui/dist

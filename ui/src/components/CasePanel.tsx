@@ -16,6 +16,9 @@ export function CasePanel({ d }: { d: CaseDetail }) {
   const txns = more ? c.affected_txn_ids : c.affected_txn_ids.slice(0, 8);
   return (
     <Card title="Case record" hint={c.graph_case_id}>
+      {d.live ? (
+        <div className="banner sim" style={{ marginBottom: 14 }} role="note"><Icon name="check" /><span><b>Live preview · no FI_Case write performed</b> · this result was produced by a live investigation and is not stored in the graph</span></div>
+      ) : (
       <div className={`banner ${c.written_to_graph ? "" : "err"}`} style={{ background: c.written_to_graph ? "var(--ok-soft)" : undefined, borderColor: c.written_to_graph ? "rgba(63,185,132,.3)" : undefined, color: c.written_to_graph ? "#7fdcb4" : undefined, marginBottom: 14 }}>
         <Icon name={c.written_to_graph ? "check" : "alert"} />
         <span>
@@ -24,6 +27,7 @@ export function CasePanel({ d }: { d: CaseDetail }) {
         </span>
         <button className="btn ghost" style={{ marginLeft: "auto", height: 26 }} onClick={check} disabled={busy}><Icon name="refresh" size={13} /> {busy ? "Checking…" : "Verify live"}</button>
       </div>
+      )}
       {probe && (
         <div className={`banner ${probe.reachable && probe.found ? "" : "warn"}`} style={{ marginBottom: 14 }} role="status">
           <Icon name={probe.reachable && probe.found ? "check" : "alert"} />
