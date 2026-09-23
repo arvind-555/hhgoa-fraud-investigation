@@ -65,6 +65,18 @@ class ChunkTests(unittest.TestCase):
         self.assertIn("merchant", r7["text"])
         self.assertEqual(len([c for c in self.all if c["doc_type"] == "pattern" and c["source_ref"].startswith("pattern:") and c["source_ref"][8:].isdigit()]), 5)
 
+    def test_static_chunks_read_the_preserved_spec_not_the_judge_facing_readme(self):
+        """Regression: the README was rebuilt into a short judge-facing document (no pattern/policy/format sections); the original spec that
+        static_chunks() depends on was deliberately preserved unchanged at docs/hackathon-spec.md, and _hackathon_spec_sections() must read it from there."""
+        pat = [c for c in self.all if c["doc_type"] == "pattern"]
+        pol = [c for c in self.all if c["doc_type"] == "policy"]
+        fmt = [c for c in self.all if c["doc_type"] == "format"]
+        self.assertEqual((len(pat), len(pol), len(fmt)), (6, 21, 2))     # 5 numbered patterns + the "not exhaustive" note, per test_counts_and_types
+        self.assertTrue(all(c["text"].strip() for c in pat + pol + fmt))
+        src = (ROOT / "src" / "rag" / "chunks.py").read_text(encoding="utf-8")
+        self.assertIn('"hackathon-spec.md"', src)
+        self.assertNotIn('ROOT / "README.md"', src)
+
 
 class StoreTests(unittest.TestCase):
     def test_only_textchunk_and_describes_are_written(self):

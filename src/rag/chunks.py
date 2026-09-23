@@ -2,11 +2,11 @@
 
 doc_type            chunk                                                              valid_from_epoch
 closed_case         one per closed case: "<pattern> | <outcome> | <channel> | exposure band: analyst notes"   close_epoch (visible only once the case is closed)
-policy              README Fraud Policy sections, rules R1-R10, actions/routes                             0
+policy              docs/hackathon-spec.md Fraud Policy sections, rules R1-R10, actions/routes              0
 pattern             the five known fraud patterns + "not exhaustive"                                        0
 format              answer-format rules                                                                     0
 
-The agent's knowledge base is ONLY these documents (spec section 12.7). The README's list of the 20 exam cases, the case pack and every benchmark artefact are excluded; `assert_clean`
+The agent's knowledge base is ONLY these documents (spec section 12.7). docs/hackathon-spec.md's list of the 20 exam cases, the case pack and every benchmark artefact are excluded; `assert_clean`
 fails the build if any chunk mentions a benchmark case id. Closed-case notes are templated (392 normalised templates): they give wording and base-rate context, never a label for the case
 under investigation. Vector embeddings are NOT created here (embedding model/dimension is an open decision); retrieval is lexical (BM25) over these chunks.
 """
@@ -29,8 +29,9 @@ def band(x):
     return next(label for hi, label in BANDS if x < hi)
 
 
-def _readme_sections():
-    text = (ROOT / "README.md").read_text(encoding="utf-8")
+def _hackathon_spec_sections():
+    # The pattern/policy/format sections live in the preserved original spec (docs/hackathon-spec.md), not the judge-facing README.md.
+    text = (ROOT / "docs" / "hackathon-spec.md").read_text(encoding="utf-8")
     lines = text.splitlines()
 
     def between(start, stops):
@@ -55,7 +56,7 @@ def _split_h3(lines, prefix):
 
 
 def static_chunks():
-    pat, pol, fmt = _readme_sections()
+    pat, pol, fmt = _hackathon_spec_sections()
     ch = []
     para = [p.strip() for p in "\n".join(pat).split("\n\n") if p.strip()]
     for i, p in enumerate(para):
@@ -100,7 +101,7 @@ def assert_clean(chunks):
     if bad:
         raise AssertionError(f"benchmark case ids found in chunks: {bad[:5]}")
     if any("The 20 Cases" in c["text"] for c in chunks):
-        raise AssertionError("the README case list section found in chunks")
+        raise AssertionError("the hackathon-spec.md case list section found in chunks")
     ids = [c["chunk_id"] for c in chunks]
     if len(ids) != len(set(ids)):
         raise AssertionError("duplicate chunk ids")
