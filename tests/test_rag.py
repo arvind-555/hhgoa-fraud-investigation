@@ -67,7 +67,7 @@ class ChunkTests(unittest.TestCase):
 
     def test_static_chunks_read_the_preserved_spec_not_the_judge_facing_readme(self):
         """Regression: the README was rebuilt into a short judge-facing document (no pattern/policy/format sections); the original spec that
-        static_chunks() depends on was deliberately preserved unchanged at docs/hackathon-spec.md, and _readme_sections() must read it from there."""
+        static_chunks() depends on was deliberately preserved unchanged at docs/hackathon-spec.md, and _hackathon_spec_sections() must read it from there."""
         pat = [c for c in self.all if c["doc_type"] == "pattern"]
         pol = [c for c in self.all if c["doc_type"] == "policy"]
         fmt = [c for c in self.all if c["doc_type"] == "format"]
