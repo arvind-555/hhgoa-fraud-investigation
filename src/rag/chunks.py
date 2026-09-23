@@ -30,7 +30,8 @@ def band(x):
 
 
 def _readme_sections():
-    text = (ROOT / "README.md").read_text(encoding="utf-8")
+    # The pattern/policy/format sections live in the preserved original spec, not the judge-facing README.md.
+    text = (ROOT / "docs" / "hackathon-spec.md").read_text(encoding="utf-8")
     lines = text.splitlines()
 
     def between(start, stops):
